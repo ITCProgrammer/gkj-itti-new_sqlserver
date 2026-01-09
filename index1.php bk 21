@@ -1,0 +1,768 @@
+<?php
+session_start();
+//include config
+include_once ('koneksi.php');
+?>
+<?php
+//set base constant
+if( !isset($_SESSION['usid'])) { ?>
+<script>setTimeout("location.href='login'",500);</script>
+<?php die( '' ); }else if( !isset($_SESSION['pssid'])) { ?>
+ <script>setTimeout("location.href='lockscreen'",500);</script>
+<?php die( '' );
+}
+?>
+<?php
+//request page
+$page = isset($_GET['p'])?$_GET['p']:'';
+$act  = isset($_GET['act'])?$_GET['act']:'';
+$id   = isset($_GET['id'])?$_GET['id']:'';
+$page = strtolower($page);
+?>
+<!DOCTYPE html>
+<!--
+This is a starter template page. Use this page to start your new project from
+scratch. This page gets rid of all links and provides the needed markup only.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+  <title>Marketing-ITTI | <?php if($_GET[p]!=""){echo ucwords($_GET[p]);}else{echo "Home";}?></title>
+  
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="plugins/Ionicons/css/ionicons.min.css">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.css">
+  <link rel="stylesheet" href="plugins/datatables-fixedheader/css/fixedHeader.bootstrap4.min.css">	
+  <!-- Select2 -->
+  <link rel="stylesheet" href="plugins/select2/css/select2.min.css">
+  <link rel="stylesheet" href="plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">  
+  <!-- Tempusdominus Bbootstrap 4 -->
+  <link rel="stylesheet" href="plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">	
+  <!-- Treegrid -->
+  <link rel="stylesheet" href="plugins/treegrid/css/jquery.treegrid.css">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  <!-- Toastr -->
+  <link rel="stylesheet" href="plugins/toastr/toastr.min.css">	
+  <!-- Ekko Lightbox -->
+  <link rel="stylesheet" href="plugins/ekko-lightbox/ekko-lightbox.css">	
+  <!-- Theme style -->
+  <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  	
+  <style>
+	body{
+		/* "Calibri Light","serif" */
+		font-family: Calibri, "sans-serif", "Source Sans Pro", "Courier New";		
+		font-style: normal;
+	}
+      .blink_me {
+  animation: blinker 1s linear infinite;
+}
+	  @keyframes blinker {
+  50% { opacity: 0; }
+}
+  </style>
+	<link rel="icon" type="image/png" href="dist/img/index.ico">
+</head>
+<body class="hold-transition sidebar-mini sidebar-collapse layout-fixed layout-footer-fixed">
+<div class="wrapper">
+
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="Home" class="nav-link">Home</a>
+      </li>      
+    </ul>
+
+    <!-- SEARCH FORM -->
+    <!--<form class="form-inline ml-3">
+      <div class="input-group input-group-sm">
+        <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+        <div class="input-group-append">
+          <button class="btn btn-navbar" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>-->
+
+    <!-- Right navbar links -->
+    
+  </nav>
+  <!-- /.navbar -->
+
+  <!-- Main Sidebar Container -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="Home" class="brand-link">
+      <img src="dist/img/Indo.png" alt="Indo Logo" class="brand-image img-circle elevation-3"
+           style="opacity: .8">
+      <span class="brand-text font-weight-light">Marketing ITTI</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Sidebar user panel (optional) -->
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="image">
+          <img src="dist/img/<?php echo $_SESSION['ft'].".png";?>" class="img-circle elevation-2" alt="User Image">
+        </div>
+        <div class="info">
+          <a href="Profile" class="d-block"><?php echo strtoupper($_SESSION['usid']);?></a>
+        </div>
+      </div>
+
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+		 <?php if($_SESSION[dep]=="MKT" or $_SESSION['lv_id']=="SUPERADMIN"){  ?>	
+          <li class="nav-item has-treeview <?php if($_GET[p]=="Tracking" or $_GET[p]=="Input-Versi" or $_GET[p]=="Add_Development" or $_GET[p]=="Data-Development" or $_GET[p]=="Report-RFT" or $_GET[p]=="Report-RFT-Internal" or $_GET[p]=="Add_Forecast" or $_GET[p]=="Add_Requisition"){echo"menu-open";}?>">
+            <a href="#" class="nav-link <?php if($_GET[p]=="Tracking" or $_GET[p]=="Input-Versi" or $_GET[p]=="Add_Development" or $_GET[p]=="Data-Development" or $_GET[p]=="Report-RFT" or $_GET[p]=="Report-RFT-Internal" or $_GET[p]=="Add_Forecast"){echo"active";}?>">
+              <i class="nav-icon fas fa-tachometer-alt text-lime"></i>
+              <p>
+                Development Tracking
+                <i class="right fas fa-angle-left"></i>  
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="Development" class="nav-link <?php if($_GET[p]=="Add_Development"){echo"active";}?>">
+                  <i class="far nav-icon text-fuchsia">M</i>
+                  <p>Master Development</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="InputVersi" class="nav-link <?php if($_GET[p]=="Input-Versi"){echo"active";}?>">
+                  <i class="far nav-icon text-warning">V</i>
+                  <p>Versi</p>
+                </a>
+              </li>	
+			  <li class="nav-item">
+                <a href="Tracking" class="nav-link <?php if($_GET[p]=="Tracking"){echo"active";}?>">
+                  <i class="far nav-icon text-green">T</i>
+                  <p>Tracking</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="DataDevelopment" class="nav-link <?php if($_GET[p]=="Data-Development"){echo"active";}?>">
+                  <i class="far nav-icon text-red">D</i>
+                  <p>Data Development</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="Forecast" class="nav-link <?php if($_GET[p]=="Add_Forecast"){echo"active";}?>">
+                  <i class="far nav-icon text-blue">F</i>
+                  <p>Forecast</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="Requisition" class="nav-link <?php if($_GET[p]=="Add_Requisition"){echo"active";}?>">
+                  <i class="far nav-icon text-yellow">R</i>
+                  <p>Requisition</p>
+                </a>
+              </li>	
+			  <!--<li class="nav-item">
+                <a href="ReportRFT" class="nav-link <?php if($_GET[p]=="Report-RFT"){echo"active";}?>">
+                  <i class="far nav-icon text-red">R</i>
+                  <p>RFT External</p>
+                </a>
+              </li>-->
+			  <!--<li class="nav-item">
+                <a href="ReportRFTIn" class="nav-link <?php if($_GET[p]=="Report-RFT-Internal"){echo"active";}?>">
+                  <i class="far nav-icon text-yellow">R</i>
+                  <p>RFT Internal</p>
+                </a>
+              </li>-->	
+            </ul>
+          </li>
+			<?php } ?>
+		  <li class="nav-item has-treeview <?php if($_GET[p]=="Input-Trans-In" or $_GET[p]=="Input-Result" or $_GET[p]=="Tracking_Pro"){echo"menu-open";}?>">
+            <a href="#" class="nav-link <?php if($_GET[p]=="Input-Trans-In" or $_GET[p]=="Input-Result" or $_GET[p]=="Tracking_Pro"){echo"active";}?>">
+              <i class="nav-icon fas fa-database text-gray"></i>
+              <p>
+                Production
+                <i class="right fas fa-angle-left"></i>  
+              </p>
+            </a>
+            <ul class="nav nav-treeview">              	
+			  <li class="nav-item">
+                <a href="InputTransIN" class="nav-link <?php if($_GET[p]=="Input-Trans-In"){echo"active";}?>">
+                  <i class="far nav-icon text-green">In</i>
+                  <p>Transfer In</p>
+                </a>
+              </li>
+				<li class="nav-item">
+                <a href="InputResult" class="nav-link <?php if($_GET[p]=="Input-Result"){echo"active";}?>">
+                  <i class="far nav-icon text-red">R</i>
+                  <p>Result</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="TrackingPro" class="nav-link <?php if($_GET[p]=="Tracking_Pro"){echo"active";}?>">
+                  <i class="far nav-icon text-green">T</i>
+                  <p>Tracking</p>
+                </a>
+              </li>	
+			  
+            </ul>
+		  	  
+          </li>
+		  <?php if($_SESSION[dep]=="PDC" or $_SESSION[dep]=="DIT"){  ?>	
+		  <li class="nav-item has-treeview <?php if($_GET[p]=="Input-Benang" or $_GET[p]=="Input-Hanger" or $_GET[p]=="Input-Kain" or $_GET[p]=="Input-DKain" or $_GET[p]=="Input-Function"){echo"menu-open";}?>">
+            <a href="#" class="nav-link <?php if($_GET[p]=="Input-Benang" or $_GET[p]=="Input-Hanger" or $_GET[p]=="Input-Kain" or $_GET[p]=="Input-DKain" or $_GET[p]=="Input-Function" or $_GET[p]=="Input-Perbaikan"){echo"active";}?>">
+              <i class="nav-icon fas fa-database text-gray"></i>
+              <p>
+                PDC
+                <i class="right fas fa-angle-left"></i>  
+              </p>
+            </a>
+            <ul class="nav nav-treeview">			  
+			  <li class="nav-item">
+                <a href="InputBenang" class="nav-link <?php if($_GET[p]=="Input-Benang"){echo"active";}?>">
+                  <i class="far nav-icon text-green">Bn</i>
+                  <p>Benang</p>
+                </a>
+              </li>
+				<li class="nav-item">
+                <a href="InputDkain" class="nav-link <?php if($_GET[p]=="Input-DKain"){echo"active";}?>">
+                  <i class="far nav-icon text-red">K</i>
+                  <p>Kain</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="InputFunction" class="nav-link <?php if($_GET[p]=="Input-Function"){echo"active";}?>">
+                  <i class="far nav-icon text-yellow">F</i>
+                  <p>Function</p>
+                </a>
+              </li>	
+			  <li class="nav-item">
+                <a href="InputKain" class="nav-link <?php if($_GET[p]=="Input-Kain"){echo"active";}?>">
+                  <i class="far nav-icon text-blue">Jk</i>
+                  <p>Jenis Kain</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="InputHanger" class="nav-link <?php if($_GET[p]=="Input-Hanger"){echo"active";}?>">
+                  <i class="far nav-icon text-green">H</i>
+                  <p>Hanger</p>
+                </a>
+              </li>	
+            </ul>
+		  	  
+          </li>	
+		  <?php } ?>
+		  <?php if($_SESSION[dep]=="TAS" or $_SESSION[dep]=="DIT"){  ?>	
+		  <li class="nav-item has-treeview <?php if($_GET[p]=="Input-Perbaikan"){echo"menu-open";}?>">
+            <a href="#" class="nav-link <?php if($_GET[p]=="Input-Perbaikan"){echo"active";}?>">
+              <i class="nav-icon fas fa-database text-gray"></i>
+              <p>
+                TAS
+                <i class="right fas fa-angle-left"></i>  
+              </p>
+            </a>
+            <ul class="nav nav-treeview">              	
+			  <li class="nav-item">
+                <a href="InputPerbaikan" class="nav-link <?php if($_GET[p]=="Input-Perbaikan"){echo"active";}?>">
+                  <i class="far nav-icon text-pink">P</i>
+                  <p>Perbaikan</p>
+                </a>
+              </li>				  
+            </ul>
+		  	  
+          </li>	
+		  <?php } ?>	
+		  	
+		  <li class="nav-item has-treeview <?php if($_GET[p]=="Input-Proses" or $_GET[p]=="Input-Status" or $_GET[p]=="Input-Buyer" or $_GET[p]=="Input-Season"){echo"menu-open";}?>">
+            <a href="#" class="nav-link <?php if($_GET[p]=="Input-Proses" or $_GET[p]=="Input-Status" or $_GET[p]=="Input-Buyer" or $_GET[p]=="Input-Season"){echo"active";}?>">
+              <i class="nav-icon fas fa-database text-gray"></i>
+              <p>
+                Master
+                <i class="right fas fa-angle-left"></i>  
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+			  <li class="nav-item">
+                <a href="InputProses" class="nav-link <?php if($_GET[p]=="Input-Proses"){echo"active";}?>">
+                  <i class="far nav-icon text-fuchsia">Dp</i>
+                  <p>Data Proses</p>
+                </a>
+              </li>	
+			  <?php if($_SESSION[dep]=="MKT" or $_SESSION['lv_id']=="SUPERADMIN"){  ?>	
+              <li class="nav-item">
+                <a href="InputStatus" class="nav-link <?php if($_GET[p]=="Input-Status"){echo"active";}?>">
+                  <i class="far nav-icon text-fuchsia">Ds</i>
+                  <p>Data Status</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="InputBuyer" class="nav-link <?php if($_GET[p]=="Input-Buyer"){echo"active";}?>">
+                  <i class="far nav-icon text-green">B</i>
+                  <p>Buyer</p>
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a href="InputSeason" class="nav-link <?php if($_GET[p]=="Input-Season"){echo"active";}?>">
+                  <i class="far nav-icon text-green">S</i>
+                  <p>Season</p>
+                </a>
+              </li>	
+			<?php } ?>	
+            </ul>
+		  	  
+          </li>
+			
+          <li class="nav-item">
+            <a href="logout" class="nav-link">
+              <i class="nav-icon fas fa-sign-out-alt text-blue"></i>
+                <p>Log Out</p>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+  </aside>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+        <?php
+          if(!empty($page) and !empty($act)){
+            $files = 'pages/'.$page.'.'.$act.'.php';
+          } else
+          if(!empty($page)){
+            $files = 'pages/'.$page.'.php';
+          } else {
+            $files = 'pages/home.php';
+          }
+
+          if(file_exists($files)){
+            include_once($files);
+          } else {
+            include_once("blank.php");
+          }
+          ?>
+       
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+    <div class="p-3">
+      <h5>Title</h5>
+      <p>Sidebar content</p>
+    </div>
+  </aside>
+  <!-- /.control-sidebar -->
+
+  <!-- Main Footer -->
+  <footer class="main-footer">
+    <!-- To the right -->
+    <div class="float-right d-none d-sm-inline">
+      Indo Taichen Textile Industry
+    </div>
+    <!-- Default to the left -->
+    <strong>Copyright &copy; 2020 <a href="#">DIT</a>.</strong> All rights reserved.
+  </footer>
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED SCRIPTS -->
+
+<!-- jQuery -->
+<script src="plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- DataTables -->
+<script src="plugins/datatables/jquery.dataTables.js"></script>
+<script src="plugins/datatables-bs4/js/dataTables.bootstrap4.js"></script>
+<script src="plugins/datatables-fixedheader/js/dataTables.fixedHeader.min.js"></script>
+<!-- Select2 -->
+<script src="plugins/select2/js/select2.full.min.js"></script>
+<!-- bootstrap datepicker -->
+<!--<script src="plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>-->	
+<!-- jQuery -->
+<script src="plugins/treegrid/js/jquery.treegrid.js"></script>	
+<script src="plugins/treegrid/js/jquery.treegrid.bootstrap3.js"></script>
+<!-- InputMask -->
+<script src="plugins/moment/moment.min.js"></script>
+<script src="plugins/inputmask/min/jquery.inputmask.bundle.min.js"></script>	
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="plugins/sweetalert2/sweetalert2.min.js"></script>
+<!-- Toastr -->
+<script src="plugins/toastr/toastr.min.js"></script>
+<!-- Ekko Lightbox -->
+<script src="plugins/ekko-lightbox/ekko-lightbox.min.js"></script>	
+<!-- bs-custom-file-input -->
+<script src="plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>	
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.min.js"></script>
+</body>
+</html>
+<script type="text/javascript">
+$(document).ready(function () {
+  bsCustomFileInput.init();
+});
+</script>
+<script>
+  $(function () {
+    $(document).on('click', '[data-toggle="lightbox"]', function(event) {
+      event.preventDefault();
+      $(this).ekkoLightbox({
+        alwaysShowClose: true
+      });
+    });
+
+    $('.filter-container').filterizr({gutterPixels: 3});
+    $('.btn[data-filter]').on('click', function() {
+      $('.btn[data-filter]').removeClass('active');
+      $(this).addClass('active');
+    });
+  })
+</script>
+<script>
+   $(function () { 
+	   
+	//Datepicker
+    $('#datepicker').datetimepicker({
+      format: 'YYYY-MM-DD'
+    });
+	$('#datepicker1').datetimepicker({
+      format: 'YYYY-MM-DD'
+    });
+	$('#datepicker2').datetimepicker({
+      format: 'YYYY-MM-DD'
+    });   
+	$("#lookup1").DataTable();
+	$("#lookup2").DataTable();
+	$("#lookup3").DataTable();
+	$("#example1").DataTable({
+		"ordering": true,
+		"paging": false,
+		"info": true,
+		"fixedHeader": true,
+		"language": {
+			          "search": "Filter records:"
+			        }
+		
+	}); 
+    $("#example2").DataTable({
+      "paging": true,
+      "lengthChange": false,
+      "searching": false,
+      "ordering": false,
+      "info": true,
+      "autoWidth": false,	
+    });
+	$("#example3").DataTable({
+		"scrollX"  : true,
+	    "scrollY"  : '300px',
+		"ordering": true,
+		"paging": false,
+		"info": true,
+		
+	});
+	$("#example4").DataTable({
+		"scrollX"  : true,
+	    "scrollY"  : '263px',
+		"ordering": true,
+		"paging": false,
+		"info": true,
+		"searching": true,
+		
+	});   
+	$(".select2").select2({
+      theme: 'bootstrap4',
+	  placeholder: "Select",
+      allowClear: true,	
+    });
+    //Initialize Select2 Elements
+	  
+    $('.select2bs4').select2({
+      theme: 'bootstrap4'
+    });  
+	$('.select2buyer').select2({
+    placeholder: "Select a buyer",
+    allowClear: true,
+	theme: 'bootstrap4'	
+    }); 
+	$('.select2subject').select2({
+    placeholder: "Select a subject",
+    allowClear: true,
+	theme: 'bootstrap4'	
+});
+	$('.select2season').select2({
+    placeholder: "Select a season",
+    allowClear: true,
+	theme: 'bootstrap4'
+});  
+	$('.select2sts').select2({
+    placeholder: "Select a status",
+    allowClear: true,
+	theme: 'bootstrap4'
+});
+	   
+  });
+	$(document).ready(function() {
+                $('.tree').treegrid();
+                $('.tree-2').treegrid({					
+                    expanderExpandedClass: 'fa fa-minus',
+                    expanderCollapsedClass: 'fa fa-plus'
+                });
+
+            });
+</script>
+<script>
+$(document).on('click', '.edit_status', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/status_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#StatusEdit").html(ajaxData);
+         $("#StatusEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_status_in', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/status_in_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#StatusInEdit").html(ajaxData);
+         $("#StatusInEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });	
+$(document).on('click', '.edit_follow', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/follow_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#FollowEdit").html(ajaxData);
+         $("#FollowEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_JenisKain', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/jeniskain_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#JenisKainEdit").html(ajaxData);
+         $("#JenisKainEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_jenis_kain', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/jenis_kain_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#JenisKain1Edit").html(ajaxData);
+         $("#JenisKain1Edit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });	
+$(document).on('click', '.edit_approved', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/approved_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#ApprovedEdit").html(ajaxData);
+         $("#ApprovedEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_appafter', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/approvedafter_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#AppAfterEdit").html(ajaxData);
+         $("#AppAfterEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });	
+$(document).on('click', '.edit_greige', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/greige_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#GreigeEdit").html(ajaxData);
+         $("#GreigeEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_kirim', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/kirim_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#KirimEdit").html(ajaxData);
+         $("#KirimEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_note', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/note_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#NoteEdit").html(ajaxData);
+         $("#NoteEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_comment', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/comment_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#CommentEdit").html(ajaxData);
+         $("#CommentEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });	
+$(document).on('click', '.edit_sts', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/sts_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#STSEdit").html(ajaxData);
+         $("#STSEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_sno', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/sno_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#SNOEdit").html(ajaxData);
+         $("#SNOEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.edit_proses_in', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/proses_in_edit.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#ProsesInEdit").html(ajaxData);
+         $("#ProsesInEdit").modal('show',{backdrop: 'true'});
+       }
+     });
+      });	
+$(document).on('click', '.show_posisi', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/show_posisi.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#PosisiShow").html(ajaxData);
+         $("#PosisiShow").modal('show',{backdrop: 'true'});
+       }
+     });
+      });
+$(document).on('click', '.show_stock', function (e) {
+  var m = $(this).attr("id");
+    $.ajax({
+       url: "pages/show_stock.php",
+       type: "GET",
+       data : {id: m,},
+       success: function (ajaxData){
+         $("#StockShow").html(ajaxData);
+         $("#StockShow").modal('show',{backdrop: 'true'});
+       }
+     });
+      });	
+$(document).on('click', '.pilih-no', function(e) {
+        document.getElementById("id").value = $(this).attr('data-id');
+        document.getElementById("id").focus();
+        $('#DataDevelop').modal('hide');
+      });
+$(document).on('click', '.pilih-kd', function(e) {
+        document.getElementById("jenis_kain").value = $(this).attr('data-id');
+        document.getElementById("jenis_kain").focus();
+        $('#DataKain').modal('hide');
+      });
+$(document).on('click', '.pilih-kdK', function(e) {
+        document.getElementById("kd_kain").value = $(this).attr('data-id');
+        document.getElementById("kd_kain").focus();
+        $('#DataKain1').modal('hide');
+      });
+$(document).on('click', '.pilih-kdjk', function(e) {
+        document.getElementById("kd_kain").value = $(this).attr('data-id');
+        document.getElementById("kd_kain").focus();
+        $('#DataKain').modal('hide');
+      });	
+$(document).on('click', '.pilih-bng', function(e) {
+        document.getElementById("kode").value = $(this).attr('data-id');
+        document.getElementById("kode").focus();
+        $('#DataBenang').modal('hide');
+      });
+$(document).on('click', '.pilih-kdbg', function(e) {
+        document.getElementById("kd_benang").value = $(this).attr('data-id');
+        document.getElementById("kd_benang").focus();
+        $('#DataBenang').modal('hide');
+      });	
+</script>
+
+

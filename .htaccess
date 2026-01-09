@@ -1,0 +1,103 @@
+RewriteEngine On
+
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteRule ^$                          index.php [L]
+RewriteRule ^Registers$ ./register.php [L]
+RewriteRule ^ForgotPass$ ./forgot-password.php [L]
+RewriteRule ^RecoverPass$ ./recover-password.php [L]
+RewriteRule ^Pass-NotMatch/?$ ./recover-password.php?act=notmatch
+RewriteRule ^PassReg-NotMatch/?$ ./register.php?act=notmatch
+RewriteRule ^UserIsExists/?$ ./register.php?act=userexists
+RewriteRule ^index1$ ./index1.php [L]
+RewriteRule ^login$ ./login.php [L]
+RewriteRule ^Home$ ./index1.php?act=login [L]
+RewriteRule ^logout$ ./login.php?act=logout [L]
+RewriteRule ^User$ ./index1.php?page=User [L]
+RewriteRule ^PotongBongkar$ ./index1.php?page=PotongBongkar [L]
+RewriteRule ^PotongBongkar&$ ./index1.php?page=PotongBongkar [L]
+RewriteRule ^PotongBongkar&([0-9_-]+)$ ./index1.php?page=PotongBongkar&nokk=$1 [L]
+RewriteRule ^PotongBongkar&([0-9_-]+)&([a-zA-Z0-9_\ ]+)$ ./index1.php?page=PotongBongkar&nokk=$1&no_order=$2 [L]
+RewriteRule ^ProsesPermintaanBon$ ./index1.php?page=ProsesPermintaanBon [L]
+RewriteRule ^StatusPermintaan$ ./index1.php?page=StatusPermintaan [L]
+RewriteRule ^Timeline-([0-9_-]+)$ ./index1.php?page=timeline&refno=$1
+RewriteRule ^TimelineUser-([0-9_-]+)$ ./index1.php?page=timeline_user&refno=$1
+RewriteRule ^TerimaBon-([0-9_-]+)-(.*)-([a-zA-Z0-9_\ ]+)-([a-zA-Z0-9_\ ]+)$ ./index1.php?page=statusterima&refno=$1&tgl=$2&user=$3&jabatan=$4 [L]
+RewriteRule ^ApproveBon-([0-9_-]+)-(.*)-([a-zA-Z0-9_\ ]+)-([a-zA-Z0-9_\ ]+)$ ./index1.php?page=statusapprove&refno=$1&tgl=$2&user=$3&jabatan=$4 [L]
+RewriteRule ^CheckBon-([0-9_-]+)-(.*)-([a-zA-Z0-9_\ ]+)-([a-zA-Z0-9_\ ]+)$ ./index1.php?page=statuscheck&refno=$1&tgl=$2&user=$3&jabatan=$4 [L]
+RewriteRule ^SelesaiBon-([0-9_-]+)-(.*)-([a-zA-Z0-9_\ ]+)-([a-zA-Z0-9_\ ]+)$ ./index1.php?page=statusselesai&refno=$1&tgl=$2&user=$3&jabatan=$4 [L]
+RewriteRule ^SProsesBon-([0-9_-]+)-(.*)-([a-zA-Z0-9_\ ]+)-([a-zA-Z0-9_\ ]+)$ ./index1.php?page=statussproses&refno=$1&tgl=$2&user=$3&jabatan=$4 [L]
+RewriteRule ^CancelBon-([a-zA-Z_\ -]+)-([0-9_-]+)-(.*)-([a-zA-Z0-9_\ ]+)$ ./index1.php?page=statuscancel&usernm=$1&refno=$2&tgl=$3&jabatan=$4 [L]
+RewriteRule ^ProsesBon$ ./index1.php?page=proses_bon [L]
+RewriteRule ^ProsesBon-$ ./index1.php?page=proses_bon [L]
+RewriteRule ^ProsesBon-([0-9_-]+)-(.*)-([0-9_-]+)$ ./index1.php?page=proses_bon&bon=$1&jns=$2&id=$3 [L]
+RewriteRule ^ProsesBongkaranBon$ ./index1.php?page=prosesbongkaran_bon [L]
+RewriteRule ^ProsesBongkaranBon-$ ./index1.php?page=prosesbongkaran_bon [L]
+RewriteRule ^ProsesBongkaranBon-([0-9_-]+)-(.*)-([0-9_-]+)$ ./index1.php?page=prosesbongkaran_bon&bon=$1&jns=$2&id=$3 [L]
+RewriteRule ^ViewDetailBon-([0-9_-]+)$ ./index1.php?page=viewdetailbon&bon=$1 [L]
+RewriteRule ^TambahDetailBon-([0-9_-]+)$ ./index1.php?page=tambahdetailbon&refno=$1 [L]
+RewriteRule ^TambahDetailBonUser-([0-9_-]+)$ ./index1.php?page=tambahdetailbonuser&refno=$1 [L]
+RewriteRule ^TambahDetailBonUser-([0-9_-]+)-([0-9_-]+)$ ./index1.php?page=tambahdetailbonuser&refno=$1&nokk=$2 [L]
+RewriteRule ^BonSelesai$ ./index1.php?page=BonSelesai [L]
+RewriteRule ^SummaryBonPermintaan$ ./index1.php?page=SummaryBonPermintaan [L]
+RewriteRule ^HapusDataDetailBon-([0-9_-]+)-([0-9_-]+)-([0-9_-]+)$ ./index1.php?page=hapusdetailbon&id=$1&bon=$2&nokk=$3 [L]
+RewriteRule ^CancelDetailBon-([0-9_-]+)$ ./index1.php?page=canceldetailbon&bon=$1 [L]
+RewriteRule ^ProsesPotongSisa$ ./index1.php?page=prosespotongsisa [L]
+RewriteRule ^ProsesPotongSisa-([0-9_-]+)-(.*)-([0-9_-]+)$ ./index1.php?page=prosespotongsisa&bon=$1&jns=$2&id=$3 [L]
+RewriteRule ^EditKet$ ./index1.php?page=Ket_Update [L]
+RewriteRule ^EditNoKK$ ./index1.php?page=Nokk_Update [L]
+RewriteRule ^UbahSts$ ./index1.php?page=ubahsts [L]
+RewriteRule ^UbahLvl-([a-zA-Z0-9_\ ]+)-([a-zA-Z0-9_\ ]+)$ ./index1.php?page=ubahlvl&lvl=$1&id=$2 [L]
+RewriteRule ^BonSample$ ./index1.php?page=BonSample [L]
+RewriteRule ^BonSample&$ ./index1.php?page=BonSample [L]
+RewriteRule ^BonSample&([a-zA-Z0-9_\ ]+)$ ./index1.php?page=BonSample&zone=$1 [L]
+RewriteRule ^BonSample&([a-zA-Z0-9_\ ]+)&$ ./index1.php?page=BonSample&zone=$1 [L]
+RewriteRule ^BonSample&([a-zA-Z0-9_\ ]+)&([a-zA-Z0-9_\ ]+)$ ./index1.php?page=BonSample&zone=$1&location=$2 [L]
+RewriteRule ^ProsesGantiGrade$ ./index1.php?page=prosesganti_grade [L]
+RewriteRule ^ProsesGantiGrade-$ ./index1.php?page=prosesganti_grade [L]
+RewriteRule ^ProsesGantiGrade-([0-9_-]+)-(.*)-([0-9_-]+)$ ./index1.php?page=prosesganti_grade&bon=$1&jns=$2&id=$3 [L]
+
+
+
+
+
+RewriteRule ^RecoverPass-Success/?$	 	index.php?act=successpass
+RewriteRule ^ForgotPass-NotFound/?$	 	forgot-password.php?act=notfound
+RewriteRule ^Aktifasi-(.*)/?$	 		models/usersmodel.php?page=aktifasi&id=$1
+RewriteRule ^DelUser-([0-9_-]+)/?$	 	models/usersmodel.php?page=hapususer&id=$1
+RewriteRule ^username/?$	 			models/loginmodel.php?page=cekusername
+RewriteRule ^MutasiSimpan/?$			models/mutasimodel.php?page=mutasisimpan
+RewriteRule ^UpdateProfile/?$			models/usersmodel.php?page=updateprofile
+RewriteRule ^PermintaanSimpan/?$		models/permintaanmodel.php?page=permintaansimpan
+RewriteRule ^BonPermintaanSimpan-([a-zA-Z_\ -]+)/?$		models/permintaanmodel.php?page=bonpermintaansimpan&dept=$1
+RewriteRule ^DelMutasi-([0-9_-]+)-([0-9_-]+)/?$	models/mutasimodel.php?page=batalmutasi&id=$1&&no_mutasi=$2
+RewriteRule ^SerahTerimaSimpan/?$		models/mutasimodel.php?page=serahterimasimpan
+RewriteRule ^TerimaKKSimpan/?$			models/mutasimodel.php?page=terimakksimpan
+RewriteRule ^DelSerah-([0-9_-]+)/?$	 	models/mutasimodel.php?page=batalserah&id=$1
+RewriteRule ^SerahKKSukses/?$			index1.php?page=serahterima&act=serahsukses
+RewriteRule ^TerimaKKSukses/?$			index1.php?page=terimakk&act=terimasukses
+RewriteRule ^RecoverUpdate/?$	 		models/loginmodel.php?page=recoverpass
+RewriteRule ^Registers-Insert/?$		models/usersmodel.php?page=reguser
+RewriteRule ^ProsesBon-([0-9_-]+)-(.*)-([0-9_-]+)-([0-9_-]+)/?$	index1.php?page=proses_bon&bon=$1&jns=$2&id=$3&nokk=$4
+RewriteRule ^ProsesBon-([0-9_-]+)-(.*)-([0-9_-]+)/?$	index1.php?page=prosesdetail&bon=$1&jns=$2&nokk=$3
+RewriteRule ^TambahDetailProses/?$		models/permintaanmodel.php?page=tambahprosesdetail
+RewriteRule ^SimpanDetailProses/?$		models/permintaanmodel.php?page=simpanprosesdetail
+RewriteRule ^SimpanDetailPergerakan/?$	models/permintaanmodel.php?page=simpandetailpergerakan
+RewriteRule ^ProsesDetail/?$			models/permintaanmodel.php?page=prosesdetail
+RewriteRule ^TambahPermintaanSimpan/?$		models/permintaanmodel.php?page=tambahpermintaansimpan
+RewriteRule ^TambahBonPermintaanSimpan-([a-zA-Z_\ -]+)-([0-9_-]+)-([a-zA-Z_\ -]+)/?$		models/permintaanmodel.php?page=tambahbonpermintaansimpan&dept=$1&refno=$2&usernm=$3
+RewriteRule ^ProsesDetailBongkaran/?$			models/permintaanmodel.php?page=prosesdetailbongkaran
+RewriteRule ^ProsesDetailBongkaranSave/?$		models/permintaanmodel.php?page=prosesdetailbongkaransave
+RewriteRule ^ProsesDetailPotongSisa/?$			models/permintaanmodel.php?page=prosesdetailpotongsisa
+RewriteRule ^TambahPermintaanUserSimpan/?$		models/permintaanmodel.php?page=tambahpermintaanusersimpan
+RewriteRule ^TambahBonPermintaanUserSimpan-([a-zA-Z_\ -]+)-([0-9_-]+)-([a-zA-Z_\ -]+)/?$		models/permintaanmodel.php?page=tambahbonpermintaanusersimpan&dept=$1&refno=$2&usernm=$3
+RewriteRule ^BatalProsesKK-([0-9_-]+)/?$	index1.php?page=batalproseskk&nokk=$1
+RewriteRule ^BatalKK-([0-9_-]+)-([0-9_-]+)-([0-9_-]+)-([a-zA-Z0-9_\ ]+)-([0-9_-]+)/?$	models/permintaanmodel.php?page=batalkk&id=$1&nokk=$2&SN=$3&user=$4&idstok=$5
+RewriteRule ^EditTglProses/?$					models/permintaanmodel.php?page=updatetglproses
+
+
+
+RewriteRule ^Blank$ ./index1.php?p=Blank [L]
+
+
+Options All -Indexes

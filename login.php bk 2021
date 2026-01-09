@@ -1,0 +1,204 @@
+<?php
+session_start();
+//require_once "waktu.php";
+include"koneksi.php";
+?>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Marketing ITTI | Log in</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">  
+  <!-- icheck bootstrap -->
+  <link rel="stylesheet" href="plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+    <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  <!-- Toastr -->
+  <link rel="stylesheet" href="plugins/toastr/toastr.min.css">	
+  <!-- Theme style -->
+  <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  <style>
+	body{
+		/* "Calibri Light","serif" */
+		font-family: Calibri, "sans-serif", "Source Sans Pro", "Courier New";		
+		font-style: normal;
+	}	
+  </style>
+  <link rel="icon" type="image/png" href="dist/img/index.ico">	
+</head>
+<body class="hold-transition login-page">
+<div class="login-box">
+  <div class="login-logo">
+	<img src="dist/img/index.ico" alt="Logo Indotaichen">  
+    <a href="#"><b>Marketing</b> ITTI</a>
+  </div>
+  <!-- /.login-logo -->
+  <div class="card">
+    <div class="card-body login-card-body">
+      <p class="login-box-msg">Sign in to start your session</p>
+
+      <form action="" method="post">
+        <div class="input-group mb-3">
+          <input name="email" type="email" class="form-control form-control-sm" id="email" placeholder="Email">
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-envelope"></span>
+            </div>
+          </div>
+        </div>
+        <div class="input-group mb-3">
+          <input name="password" type="password" class="form-control form-control-sm" id="password" placeholder="Password">
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-lock"></span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <!--<div class="col-8">
+            <div class="icheck-primary">
+              <input type="checkbox" id="remember">
+              <label for="remember">
+                Remember Me
+              </label>
+            </div>
+          </div>-->
+          <!-- /.col -->
+          <div class="col-12">
+            <button type="submit" class="btn btn-sm btn-primary float-right">Sign In</button>
+          </div>
+          <!-- /.col -->
+        </div>
+      </form>      
+		<p class="mb-1">
+        <a href="ForgotPass">I forgot my password</a>
+      </p>
+    </div>
+    <!-- /.login-card-body -->
+  </div>
+</div>
+<!-- /.login-box -->
+
+<!-- jQuery -->
+<script src="plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="plugins/sweetalert2/sweetalert2.min.js"></script>
+<!-- Toastr -->
+<script src="plugins/toastr/toastr.min.js"></script>	
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.min.js"></script>
+
+</body>
+</html>
+<?php
+$ip_num = $_SERVER['REMOTE_ADDR'];
+$os= $_SERVER['HTTP_USER_AGENT'];
+if($_POST){ //login user
+  extract($_POST);
+  $email = mysql_real_escape_string($_POST['email']);
+  $password = mysql_real_escape_string($_POST['password']);
+  $sql=mysql_query("SELECT * FROM `user_login` WHERE `email`='$email' AND `password`='$password'  LIMIT 1",$con);
+  if(mysql_num_rows($sql)>0)
+  {  
+  $_SESSION['pssid']=$password;
+  $_SESSION['emailid']=$email;	  
+  $r = mysql_fetch_array($sql);
+  $_SESSION['usid']=$r['user'];	  
+  $_SESSION['lv_id']=$r['level'];
+  $_SESSION['sts']=$r['status'];
+  $_SESSION['mamber']=$r['mamber'];
+  $_SESSION['ft']=$r['foto'];
+  $_SESSION['dep']=$r['dept'];
+  $_SESSION['ket']=$r['ket'];
+  $_SESSION['aks']=$r['akses'];
+  $_SESSION['idmkt']=$r['id'];	  
+  //login_validate();
+    echo "<script>window.location='Home';</script>";
+	/*echo "<script>swal({
+  title: 'Login Success!!',
+  text: 'Click Ok to continue',
+  type: 'success',
+  }).then((result) => {
+  if (result.value) {
+    window.location='Home';
+  }
+});</script>";*/
+	 $qrytimline=mysql_query("INSERT INTO tbl_timeline SET
+		`userid`='$_SESSION[usid]',
+		`form_aksi`='Login',
+		`aksi`='login',
+		`rinci_aksi`='Log In ke sistem internal sukses',
+		`os`='$os',
+		`ipaddr`='$ip_num',
+		`tgl_update`=now(),
+		`time_update`=now()
+		"); 
+
+  }else {
+	  $qrytimline=mysql_query("INSERT INTO tbl_timeline SET
+		`userid`='$email',
+		`form_aksi`='Login',
+		`aksi`='login',
+		`rinci_aksi`='Log In ke sistem internal gagal',
+		`os`='$os',
+		`ipaddr`='$ip_num',
+		`tgl_update`=now(),
+		`time_update`=now()
+		");
+	  echo "<script>
+  	$(function() {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 6000
+    });
+	Toast.fire({
+        type: 'warning',
+        title: ' $email Login Gagal!!'
+      });
+  });
+  
+</script>";
+	  
+  }
+
+}else
+if( $_GET['act']=="logout" ){ //logout user
+$qrytimline=mysql_query("INSERT INTO tbl_timeline SET
+		`userid`='$_SESSION[usid]',
+		`form_aksi`='Logout',
+		`aksi`='logout',
+		`rinci_aksi`='Log Out ke sistem internal sukses',
+		`os`='$os',
+		`ipaddr`='$ip_num',
+		`tgl_update`=now(),
+		`time_update`=now()
+		");	
+unset($_SESSION['usid']);
+//echo "<script>window.location='login';</script>";
+echo "<script>
+  	$(function() {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 6000
+    });
+	Toast.fire({
+        type: 'success',
+        title: 'Log out successful'
+      });
+  });
+  
+</script>";
+}
+unset($_SESSION['email']);
+?>
