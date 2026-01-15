@@ -48,27 +48,34 @@ $Bon        = $_GET['bon'];
               </thead>
               <tbody> 
               <?php
-              $sql = mysqli_query($con,"SELECT 
-              id,refno, nokk, langganan, no_po, no_order, warna, dept,
-              no_lot, `status`, jns_permintaan,ket,
-              `personil_buat`,
-              `personil_periksa`,
-              DATE_FORMAT(tgl_periksa,'%Y-%m-%d') as tgl_periksa,
-              `personil_approve`,
-              DATE_FORMAT(tgl_approve,'%Y-%m-%d') as tgl_approve,
-              `personil_terima`,
-              DATE_FORMAT(tgl_terima,'%Y-%m-%d') as tgl_terima,
-              `personil_proses`,
-              DATE_FORMAT(tgl_proses,'%Y-%m-%d') as tgl_proses,
-              `personil_selesai`,
-              DATE_FORMAT(tgl_selesai,'%Y-%m-%d') as tgl_selesai,
-              `personil_cancel`,
-              DATE_FORMAT(tgl_cancel,'%Y-%m-%d') as tgl_cancel, 
-              DATE_FORMAT(tgl_buat,'%Y.%m.%d') as tgl_status, 
-              DATE_FORMAT(tgl_buat,'%Y-%m-%d') as tgl_buat
-              FROM tbl_bon_permintaan WHERE refno='$_GET[bon]'");
+              $sql = sqlsrv_query($con, "
+                                          SELECT
+                                              id, refno, nokk, langganan, no_po, no_order, warna, dept,
+                                              no_lot, [status], jns_permintaan, ket,
+                                              personil_buat,
+                                              personil_periksa,
+                                              CONVERT(varchar(10), tgl_periksa, 23)  AS tgl_periksa,
+                                              personil_approve,
+                                              CONVERT(varchar(10), tgl_approve, 23)  AS tgl_approve,
+                                              personil_terima,
+                                              CONVERT(varchar(10), tgl_terima, 23)   AS tgl_terima,
+                                              personil_proses,
+                                              CONVERT(varchar(10), tgl_proses, 23)   AS tgl_proses,
+                                              personil_selesai,
+                                              CONVERT(varchar(10), tgl_selesai, 23)  AS tgl_selesai,
+                                              personil_cancel,
+                                              CONVERT(varchar(10), tgl_cancel, 23)   AS tgl_cancel,
+                                              CONVERT(varchar(10), tgl_buat, 102)    AS tgl_status,  -- yyyy.mm.dd (seperti MySQL %Y.%m.%d)
+                                              CONVERT(varchar(10), tgl_buat, 23)     AS tgl_buat     -- yyyy-mm-dd (seperti MySQL %Y-%m-%d)
+                                          FROM db_qc.tbl_bon_permintaan
+                                          WHERE refno = ?
+                                      ", [$Bon]);
+              if ($sql === false) {
+                die(print_r(sqlsrv_errors(), true));
+              }
+
               $n=1;
-              while($row = mysqli_fetch_array($sql)){
+              while($row =  sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC)){
               ?>	  
               <tr>
               <td align="center"><?php echo $n; ?></td>
@@ -89,7 +96,7 @@ $Bon        = $_GET['bon'];
               <td align="center"><?php echo $row['tgl_buat']; ?></td>
               <td align="center"><?php echo $row['jns_permintaan']; ?></td>
               <td align="center"><div class="btn-group">
-              <a href="#" class="btn btn-danger btn-xs" onclick="confirm_delete('./HapusDataDetailBon-<?php echo $row['id'] ?>-<?php echo $row['refno'] ?>-<?php echo $row['nokk'] ?>');"><i class="fa fa-times-circle" data-toggle="tooltip" data-placement="top" title="Cancel"></i> </a>
+              <a href="#" class="btn btn-danger btn-xs" onclick="confirm_delete('./HapusDataDetailBon-<?php echo $row['id'] ?>-<?php echo trim($row['refno']) ?>-<?php echo $row['nokk'] ?>');"><i class="fa fa-times-circle" data-toggle="tooltip" data-placement="top" title="Cancel"></i> </a>
               </tr>
               <?php $n++;}?>
               </tbody>

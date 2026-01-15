@@ -49,28 +49,36 @@ $Bon        = $_GET['bon'];
               </thead>
               <tbody> 
               <?php
-              $sqldata = mysqli_query($con,"SELECT 
-              id,refno, nokk, langganan, no_po, no_order, warna, dept,
-              no_lot, `status`, jns_permintaan,ket,
-              `personil_buat`,
-              `personil_periksa`,
-              DATE_FORMAT(tgl_periksa,'%Y-%m-%d') as tgl_periksa,
-              `personil_approve`,
-              DATE_FORMAT(tgl_approve,'%Y-%m-%d') as tgl_approve,
-              `personil_terima`,
-              DATE_FORMAT(tgl_terima,'%Y-%m-%d') as tgl_terima,
-              `personil_proses`,
-              DATE_FORMAT(tgl_proses,'%Y-%m-%d') as tgl_proses,
-              `personil_selesai`,
-              DATE_FORMAT(tgl_selesai,'%Y-%m-%d') as tgl_selesai,
-              `personil_cancel`,
-              DATE_FORMAT(tgl_cancel,'%Y-%m-%d') as tgl_cancel, 
-              DATE_FORMAT(tgl_buat,'%Y.%m.%d') as tgl_status, 
-              DATE_FORMAT(tgl_buat,'%Y-%m-%d') as tgl_buat
-              FROM tbl_bon_permintaan WHERE refno='$_GET[bon]'");
+              $sqldata = sqlsrv_query($con, "
+                                              SELECT
+                                                  id, refno, nokk, langganan, no_po, no_order, warna, dept,
+                                                  no_lot, [status], jns_permintaan, ket,
+                                                  personil_buat,
+                                                  personil_periksa,
+                                                  CONVERT(varchar(10), tgl_periksa, 23) AS tgl_periksa,
+                                                  personil_approve,
+                                                  CONVERT(varchar(10), tgl_approve, 23) AS tgl_approve,
+                                                  personil_terima,
+                                                  CONVERT(varchar(10), tgl_terima, 23) AS tgl_terima,
+                                                  personil_proses,
+                                                  CONVERT(varchar(10), tgl_proses, 23) AS tgl_proses,
+                                                  personil_selesai,
+                                                  CONVERT(varchar(10), tgl_selesai, 23) AS tgl_selesai,
+                                                  personil_cancel,
+                                                  CONVERT(varchar(10), tgl_cancel, 23) AS tgl_cancel,
+                                                  CONVERT(varchar(10), tgl_buat, 102) AS tgl_status, -- yyyy.mm.dd
+                                                  CONVERT(varchar(10), tgl_buat, 23)  AS tgl_buat    -- yyyy-mm-dd
+                                              FROM db_qc.tbl_bon_permintaan
+                                              WHERE refno = ?
+                                              ORDER BY id ASC
+                                          ", [$Bon]);
+
+              if ($sqldata === false) {
+                die(print_r(sqlsrv_errors(), true));
+              }
               $n=1;
-              while($row = mysqli_fetch_array($sqldata)){
-                $sqlcount = "SELECT BALANCE.* FROM BALANCE BALANCE WHERE BALANCE.LOTCODE ='0000986400901'";
+              while($row = sqlsrv_fetch_array($sqldata, SQLSRV_FETCH_ASSOC)){
+                // $sqlcount = "SELECT BALANCE.* FROM BALANCE BALANCE WHERE BALANCE.LOTCODE ='0000986400901'"; //saya comment karena tidak di eksekusi
               ?>	  
               <tr>
               <td align="center"><?php echo $n; ?></td>

@@ -103,48 +103,49 @@ $ip_num = $_SERVER['REMOTE_ADDR'];
 $os= $_SERVER['HTTP_USER_AGENT'];
 if($_POST){ //login user
   extract($_POST);
-  $username = mysqli_real_escape_string($con,$_POST['username']);
-  $password = mysqli_real_escape_string($con,$_POST['password']);
+  $username = $_POST['username'];
+  $password = $_POST['password'];
   $passwordmd5 = md5($password);
-  $sql=mysqli_query($con,"SELECT * FROM `tbl_user_gkj` WHERE `username`='$username' AND `password`='$passwordmd5' LIMIT 1");
-  if(mysqli_num_rows($sql)>0)
+  $sql= sqlsrv_query($con,"SELECT TOP 1 * FROM db_qc.tbl_user_gkj WHERE username='$username' AND password='$passwordmd5'", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+  if(sqlsrv_num_rows($sql) > 0)
   {  
-  $r = mysqli_fetch_array($sql);
-  $_SESSION['idGKJ'] 			= $r['id'];
-  $_SESSION['userGKJ']	  = $r['username'];
-  $_SESSION['passGKJ']	  = $password;
-  $_SESSION['fotoGKJ']	  = $r['foto'];
-  $_SESSION['jabatanGKJ'] = $r['jabatan'];
-  $_SESSION['stsGKJ']			= $r['status'];
-  $_SESSION['lvlGKJ']     = $r['level'];
-	$_SESSION['subGKJ']     = $r['sub_dept'];
-	$_SESSION['deptGKJ']    = $r['dept'];
-	$_SESSION['emailGKJ']		= $r['email'];	  
-  //login_validate();
-    echo "<script>window.location='Home';</script>";
-	/*echo "<script>swal({
-  title: 'Login Success!!',
-  text: 'Click Ok to continue',
-  type: 'success',
-  }).then((result) => {
-  if (result.value) {
-    window.location='Home';
-  }
-});</script>";*/
-}else{
-  echo "<script>
-      $(function() {
-    Swal.fire({
-          type: 'error',
-          title: 'Login Failed!',
-          text: 'Wrong Email or Password!!'
-        });
-    });
-    
-  </script>";
-} 
+    $r = sqlsrv_fetch_array($sql);
+    $_SESSION['idGKJ'] 			= $r['id'];
+    $_SESSION['userGKJ']	  = $r['username'];
+    $_SESSION['passGKJ']	  = $password;
+    $_SESSION['fotoGKJ']	  = $r['foto'];
+    $_SESSION['jabatanGKJ'] = $r['jabatan'];
+    $_SESSION['stsGKJ']			= $r['status'];
+    $_SESSION['lvlGKJ']     = $r['level'];
+    $_SESSION['subGKJ']     = $r['sub_dept'];
+    $_SESSION['deptGKJ']    = $r['dept'];
+    $_SESSION['emailGKJ']		= $r['email'];	  
+    //login_validate();
+      echo "<script>window.location='Home';</script>";
+      /*echo "<script>swal({
+      title: 'Login Success!!',
+      text: 'Click Ok to continue',
+      type: 'success',
+      }).then((result) => {
+      if (result.value) {
+        window.location='Home';
+      }
+    });</script>";*/
+  }else{
+    echo "<script>
+        $(function() {
+      Swal.fire({
+            type: 'error',
+            title: 'Login Failed!',
+            text: 'Wrong Email or Password!!'
+          });
+      });
+      
+    </script>";
+  } 
 }else
 if( $_GET['act']=="logout" ){ //logout user
+  unset($_SESSION['userGKJ']);
 //echo "<script>window.location='login';</script>";
 echo "<script>
   	$(function() {
@@ -162,5 +163,4 @@ echo "<script>
   
 </script>";
 }
-unset($_SESSION['email']);
 ?>

@@ -9,29 +9,46 @@ $Nokk1		= isset($_GET['nokk']) ? $_GET['nokk'] : '';
 // $Bon1		= isset($_POST['refno']) ? $_POST['refno'] : '';
 $Bon		= isset($_GET['refno']) ? $_GET['refno'] : '';
 $Dept	    = $_SESSION['deptGKJ'];
-function no_urut(){
+function no_urut()
+{
   date_default_timezone_set("Asia/Jakarta");
-  include"koneksi.php";
-  $format = date("y");
-  $sql=mysqli_query($con,"SELECT no_permintaan FROM tbl_bon_permintaan WHERE substr(no_permintaan,1,2) like '".$format."%' ORDER BY no_permintaan DESC LIMIT 1") or die (mysqli_error());
-  $d=mysqli_num_rows($sql);
-  if($d>0){
-    $r=mysqli_fetch_array($sql);
-    $d=$r['no_permintaan'];
-    $str=substr($d,2,5);
+  include "koneksi.php";
+
+  $format = date("y"); // contoh: 26
+
+  $stmt = sqlsrv_query(
+    $con,
+    "SELECT TOP 1 no_permintaan
+     FROM db_qc.tbl_bon_permintaan
+     WHERE LEFT(no_permintaan, 2) = ?
+     ORDER BY no_permintaan DESC",
+    [$format]
+  );
+
+  if ($stmt === false) {
+    die(print_r(sqlsrv_errors(), true));
+  }
+
+  $Urut = 0;
+  $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+  if ($row && !empty($row['no_permintaan'])) {
+    $d   = $row['no_permintaan'];
+    $str = substr($d, 2, 5);
     $Urut = (int)$str;
-  }else{
-    $Urut = 0;
   }
+
   $Urut = $Urut + 1;
-  $Nol="";
-  $nilai=5-strlen($Urut);
-  for ($i=1;$i<=$nilai;$i++){
-    $Nol= $Nol."0";
+
+  $Nol = "";
+  $nilai = 5 - strlen((string)$Urut);
+  for ($i = 1; $i <= $nilai; $i++) {
+    $Nol .= "0";
   }
-  $nipbr =$format.$Nol.$Urut;
+
+  $nipbr = $format . $Nol . $Urut;
   return $nipbr;
 }
+
 $nopermintaan=no_urut();
 ?>
 
@@ -262,14 +279,16 @@ input.noborder {
         <div class="card-header">
 			    <h3 class="card-title">Detail Data</h3>
           <?php
-          $sqlcount = mysqli_query($con,"SELECT *
-          FROM
-            tbl_bon_permintaan 
-          WHERE
-            ISNULL( refno ) AND dept='$Dept'
-          GROUP BY
-            id");
-          $cek=mysqli_num_rows($sqlcount);
+              $stmtCount = sqlsrv_query(
+                $con,
+                "SELECT COUNT(*) AS cnt
+                FROM db_qc.tbl_bon_permintaan
+                WHERE refno IS NULL AND dept = ?",
+                [$Dept]
+              );
+              if ($stmtCount === false) die(print_r(sqlsrv_errors(), true));
+              $rowCount = sqlsrv_fetch_array($stmtCount, SQLSRV_FETCH_ASSOC);
+              $cek = (int)($rowCount['cnt'] ?? 0);
           ?>
           <input type="submit" value="Save" name="savebon" id="savebon" class="btn btn-primary float-right" <?php if($cek==0){echo "disabled";}?>/>	
         </div>
@@ -292,15 +311,21 @@ input.noborder {
             </thead>  
             <tbody>
             <?php
-            $sqldata = mysqli_query($con,"SELECT *
-            FROM
-              tbl_bon_permintaan 
-            WHERE
-              ISNULL( refno ) AND dept='$Dept'
-            GROUP BY
-              id");
-            $n=1;
-            while($row = mysqli_fetch_array($sqldata)){
+                $stmtData = sqlsrv_query(
+                  $con,
+                  "SELECT
+                      id, langganan, no_po, no_order, jenis_kain, warna, nokk, no_lot,
+                      jns_permintaan, ket,
+                      CONVERT(varchar(10), tgl_buat, 23) AS tgl_buat
+                  FROM db_qc.tbl_bon_permintaan
+                  WHERE refno IS NULL AND dept = ?
+                  ORDER BY id DESC",
+                  [$Dept]
+                );
+                if ($stmtData === false) die(print_r(sqlsrv_errors(), true));
+
+                $n=1;
+                while($row = sqlsrv_fetch_array($stmtData, SQLSRV_FETCH_ASSOC)){
 					  ?>	
               <tr align="center">
                 <td align="center"><?php echo date("Y-m-d",strtotime($row['tgl_buat']));?></td>
@@ -322,109 +347,185 @@ input.noborder {
     </div>	
 	</div>
 </form>
-<?php 
-  if(isset($_POST['save'])){
-    $no=1;
-		$refno=$_POST['refno'];	
-		$nokk=$_POST['nokk'];
-		$langganan=str_replace("'","''",$_POST['langganan']);
-		$nopo=$_POST['no_po'];
-		$noorder=$_POST['no_order'];
-		$jeniskain=str_replace("'","''",$_POST['jenis_kain']);
-		$warna=str_replace("'","''",$_POST['warna']);
-		$lot=$_POST['lot'];
-		$dept=$_POST['dept'];
-		$jnsP=$_POST['kategori'];
-		$user_buat=$_POST['user_buat'];
-		$jabatan_buat=$_POST['jabatan_buat'];
-    $ket=str_replace("'","''",$_POST['ket']);
-    $sqlcek = mysqli_query($con,"SELECT * FROM `tbl_bon_permintaan` WHERE refno='$refno' AND NOT ISNULL( refno )");
-    $cek = mysqli_num_rows($sqlcek);
-    if($cek>0){
-      $sqldt = mysqli_query($con,"SELECT * FROM `tbl_bon_permintaan` WHERE refno='$refno' AND NOT ISNULL( refno ) LIMIT 1");
-      $rowdt = mysqli_fetch_array($sqldt);
-      $sqlInsert=mysqli_query($con,"INSERT INTO tbl_bon_permintaan SET
-      no_permintaan='$nopermintaan',
-      nokk='$nokk',
-      langganan='$langganan',
-      no_po='$nopo',
-      no_order='$noorder',
-      jenis_kain='$jeniskain',
-      warna='$warna',
-      no_lot='$lot',
-      dept='$dept',
-      ket='$ket',
-      jns_permintaan='$jnsP',
-      personil_buat='$rowdt[personil_buat]',
-      jabatan_buat='$rowdt[jabatan_buat]',
-      tgl_buat='$rowdt[tgl_buat]',
-      personil_periksa='$rowdt[personil_periksa]',
-      jabatan_periksa='$rowdt[jabatan_periksa]',
-      tgl_periksa='$rowdt[tgl_periksa]',
-      personil_approve='$rowdt[personil_approve]',
-      jabatan_approve='$rowdt[jabatan_approve]',
-      tgl_approve='$rowdt[tgl_approve]',
-      tgl_update=now()");
-    }else{
-      $sqlInsert=mysqli_query($con,"INSERT INTO tbl_bon_permintaan SET
-      no_permintaan='$nopermintaan',
-      nokk='$nokk',
-      langganan='$langganan',
-      no_po='$nopo',
-      no_order='$noorder',
-      jenis_kain='$jeniskain',
-      warna='$warna',
-      no_lot='$lot',
-      dept='$dept',
-      ket='$ket',
-      jns_permintaan='$jnsP',
-      personil_buat='$user_buat',
-      jabatan_buat='$jabatan_buat',
-      tgl_buat=now(),
-      tgl_update=now()");
-    }
-    if($sqlInsert){
-      echo "<script>window.location='TambahDetailBon-$refno';</script>"; 
-		}
+<?php
+if (isset($_POST['save'])) {
+  $refno        = $_POST['refno'];
+  $nokk         = $_POST['nokk'];
+  $langganan    = $_POST['langganan'];
+  $nopo         = $_POST['no_po'];
+  $noorder      = $_POST['no_order'];
+  $jeniskain    = $_POST['jenis_kain'];
+  $warna        = $_POST['warna'];
+  $lot          = $_POST['lot'];
+  $dept         = $_POST['dept'];
+  $jnsP         = $_POST['kategori'];
+  $user_buat    = $_POST['user_buat'];
+  $jabatan_buat = $_POST['jabatan_buat'];
+  $ket          = $_POST['ket'];
+
+  // cek apakah refno sudah ada
+  $stmtCek = sqlsrv_query(
+    $con,
+    "SELECT COUNT(*) AS cnt
+     FROM db_qc.tbl_bon_permintaan
+     WHERE refno = ? AND refno IS NOT NULL",
+    [$refno]
+  );
+  if ($stmtCek === false) die(print_r(sqlsrv_errors(), true));
+  $rowCek = sqlsrv_fetch_array($stmtCek, SQLSRV_FETCH_ASSOC);
+  $cek = (int)($rowCek['cnt'] ?? 0);
+
+  if ($cek > 0) {
+    // ambil 1 row sebagai template audit
+    $stmtDt = sqlsrv_query(
+      $con,
+      "SELECT TOP 1
+          personil_buat, jabatan_buat, tgl_buat,
+          personil_periksa, jabatan_periksa, tgl_periksa,
+          personil_approve, jabatan_approve, tgl_approve
+       FROM db_qc.tbl_bon_permintaan
+       WHERE refno = ? AND refno IS NOT NULL
+       ORDER BY id DESC",
+      [$refno]
+    );
+    if ($stmtDt === false) die(print_r(sqlsrv_errors(), true));
+    $rowdt = sqlsrv_fetch_array($stmtDt, SQLSRV_FETCH_ASSOC);
+
+    $sqlInsert = "
+      INSERT INTO db_qc.tbl_bon_permintaan
+      (no_permintaan, nokk, langganan, no_po, no_order, jenis_kain, warna, no_lot, dept, ket, jns_permintaan,
+       personil_buat, jabatan_buat, tgl_buat,
+       personil_periksa, jabatan_periksa, tgl_periksa,
+       personil_approve, jabatan_approve, tgl_approve,
+       tgl_update)
+      VALUES
+      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+       ?, ?, ?,
+       ?, ?, ?,
+       ?, ?, ?,
+       GETDATE())
+    ";
+
+    $params = [
+      $GLOBALS['nopermintaan'],
+      $nokk,
+      $langganan,
+      $nopo,
+      $noorder,
+      $jeniskain,
+      $warna,
+      $lot,
+      $dept,
+      $ket,
+      $jnsP,
+      $rowdt['personil_buat'],
+      $rowdt['jabatan_buat'],
+      $rowdt['tgl_buat'],
+      $rowdt['personil_periksa'],
+      $rowdt['jabatan_periksa'],
+      $rowdt['tgl_periksa'],
+      $rowdt['personil_approve'],
+      $rowdt['jabatan_approve'],
+      $rowdt['tgl_approve'],
+    ];
+
+    $ok = sqlsrv_query($con, $sqlInsert, $params);
+    if ($ok === false) die(print_r(sqlsrv_errors(), true));
+  } else {
+
+    $sqlInsert = "
+      INSERT INTO db_qc.tbl_bon_permintaan
+      (no_permintaan, nokk, langganan, no_po, no_order, jenis_kain, warna, no_lot, dept, ket, jns_permintaan,
+       personil_buat, jabatan_buat, tgl_buat, tgl_update)
+      VALUES
+      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+       ?, ?, GETDATE(), GETDATE())
+    ";
+
+    $params = [
+      $GLOBALS['nopermintaan'],
+      $nokk,
+      $langganan,
+      $nopo,
+      $noorder,
+      $jeniskain,
+      $warna,
+      $lot,
+      $dept,
+      $ket,
+      $jnsP,
+      $user_buat,
+      $jabatan_buat
+    ];
+
+    $ok = sqlsrv_query($con, $sqlInsert, $params);
+    if ($ok === false) die(print_r(sqlsrv_errors(), true));
   }
 
-  if(isset($_POST['savebon'])){
-		$no=1;
-		$Dept	= $_SESSION['deptGKJ'];
-		$refno=$_GET['refno'];
-		$usernm=$_SESSION['userGKJ'];
-		$ip= $_SERVER['REMOTE_ADDR'];
-    $query = "SELECT *
-    FROM
-      tbl_bon_permintaan 
-    WHERE
-      ISNULL( refno ) AND dept='$Dept'
-    GROUP BY
-      id";
-    $results = mysqli_query($con,$query);
-    foreach ($results as $result){	
-		$idcek	= $_POST['cek0'][$no];
-		if($idcek!=""){		
-      $sql 	= mysqli_query($con,"UPDATE tbl_bon_permintaan SET 
-      refno='$refno', 
-      `status`='Sedang Proses',
-      status_tambah='1',
-      personil_tambah='$usernm',
-      tgl_tambah=now() 
-      WHERE id='$idcek'");
-      $sqlInsert=mysqli_query($con,"INSERT INTO tbl_log_bon_gkj SET
-      proses='Tambah Detail Bon Permintaan',
-      detail_proses='User Menambah Detail KK: $result[nokk] Pada Bon: $refno ',
-      user='$usernm',
-      waktu_proses=now(),
-      ip='$ip'");
-    }
-		$no++;
-		}
+  echo "<script>window.location='TambahDetailBon-$refno';</script>";
+  exit;
+}
 
-  if($sql){
-    echo "<script>window.location='ProsesPermintaanBon';</script>";
+if (isset($_POST['savebon'])) {
+  $Dept   = $_SESSION['deptGKJ'];
+  $refno  = $_GET['refno'];
+  $usernm = $_SESSION['userGKJ'];
+  $ip     = $_SERVER['REMOTE_ADDR'];
+
+  $ids = $_POST['cek0'] ?? [];
+  if (!is_array($ids) || count($ids) === 0) {
+    echo "<script>window.location='TambahDetailBon-$refno';</script>";
+    exit;
   }
+
+  // statement reusable
+  $sqlGetNokk = "
+    SELECT TOP 1 nokk
+    FROM db_qc.tbl_bon_permintaan
+    WHERE id = ? AND refno IS NULL AND dept = ?
+  ";
+
+  $sqlUpd = "
+    UPDATE db_qc.tbl_bon_permintaan
+    SET refno = ?,
+        [status] = 'Sedang Proses',
+        status_tambah = 1,
+        personil_tambah = ?,
+        tgl_tambah = GETDATE()
+    WHERE id = ? AND refno IS NULL AND dept = ?
+  ";
+
+  $sqlLog = "
+    INSERT INTO db_qc.tbl_log_bon_gkj
+    (proses, detail_proses, [user], waktu_proses, ip)
+    VALUES (?, ?, ?, GETDATE(), ?)
+  ";
+
+  foreach ($ids as $idcek) {
+    $idcek = (int)$idcek;
+
+    $stmtNokk = sqlsrv_query($con, $sqlGetNokk, [$idcek, $Dept]);
+    if ($stmtNokk === false) die(print_r(sqlsrv_errors(), true));
+    $rowNokk = sqlsrv_fetch_array($stmtNokk, SQLSRV_FETCH_ASSOC);
+    $nokkLog = $rowNokk['nokk'] ?? '';
+
+    // update
+    $okUpd = sqlsrv_query($con, $sqlUpd, [$refno, $usernm, $idcek, $Dept]);
+    if ($okUpd === false) die(print_r(sqlsrv_errors(), true));
+
+    // log
+    $detail = "User Menambah Detail KK: $nokkLog Pada Bon: $refno ";
+    $okLog = sqlsrv_query($con, $sqlLog, [
+      'Tambah Detail Bon Permintaan',
+      $detail,
+      $usernm,
+      $ip
+    ]);
+    if ($okLog === false) die(print_r(sqlsrv_errors(), true));
+  }
+
+  echo "<script>window.location='ProsesPermintaanBon';</script>";
+  exit;
 }
 ?>
 </body>

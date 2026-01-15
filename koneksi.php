@@ -15,8 +15,14 @@ else{
     exit("DB2 Connection failed");
     }
 
-$con=mysqli_connect("10.0.0.10","dit","4dm1n","db_qc");
-if (mysqli_connect_errno()) {
-printf("Connect failed: %s\n", mysqli_connect_error());
-exit();
-} 
+$hostSVR221 = "10.0.0.221";
+$usernameSVR221 = "sa";
+$passwordSVR221 = "Ind@taichen2024";
+$qc = "db_qc";
+
+$db_qc = array("Database" => $qc, "UID" => $usernameSVR221, "PWD" => $passwordSVR221);
+$con= sqlsrv_connect($hostSVR221, $db_qc);
+if ($con) {
+} else {
+    exit("SQLSVR19 db_qc Connection failed");
+}
