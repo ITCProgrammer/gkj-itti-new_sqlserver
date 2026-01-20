@@ -4,7 +4,7 @@ session_start();
 include "../../koneksi.php";
 
 $bon = isset($_GET['bon']) ? $_GET['bon'] : '';
-$tgl = isset($_GET['tgl']) ? $_GET['tgl'] : ''; // format dari link: YYYY-MM-DD (di kode Anda pakai substr 0,10)
+$tgl = isset($_GET['tgl']) ? $_GET['tgl'] : '';
 ?>
 <!doctype html>
 <html>
@@ -120,56 +120,62 @@ $tgl = isset($_GET['tgl']) ? $_GET['tgl'] : ''; // format dari link: YYYY-MM-DD 
       // QUERY UTAMA (SQL Server)
       // =====================
       $sqlc = "
-SELECT
-  a.id,
-  a.refno,
-  a.no_permintaan,
-  a.nokk,
-  a.langganan,
-  a.no_po,
-  a.no_order,
-  a.jenis_kain,
-  a.warna,
-  a.roll,
-  a.berat AS berat1,
-  a.jns_permintaan,
-  a.ket,
+                SELECT
+                  a.id,
+                  a.refno,
+                  a.no_permintaan,
+                  a.nokk,
+                  a.langganan,
+                  a.no_po,
+                  a.no_order,
+                  a.jenis_kain,
+                  a.warna,
+                  a.roll,
+                  a.berat AS berat1,
+                  a.jns_permintaan,
+                  a.ket,
 
-  COUNT(b.sn) AS rol,
-  SUM(b.berat) AS berat,
+                  d.rol,
+                  d.berat,
+                  d.tgl_mutasi,
+                  LEFT(d.tempat, 55) AS tempat
+              FROM db_qc.tbl_bon_permintaan a
+              LEFT JOIN (
+                  SELECT
+                      nokk,
+                      no_permintaan,
 
-  tm.tgl_mutasi,
-  LEFT(tp.tempat, 55) AS tempat
-FROM db_qc.tbl_bon_permintaan a
-INNER JOIN db_qc.tbl_bon_permintaan_detail b
-  ON a.nokk = b.nokk
- AND a.no_permintaan = b.no_permintaan
+                      COUNT(sn) AS rol,
+                      SUM(berat) AS berat,
 
-OUTER APPLY (
-  SELECT STRING_AGG(CONVERT(varchar(10), x.tgl_mutasi, 23), ', ') AS tgl_mutasi
-  FROM (
-    SELECT DISTINCT tgl_mutasi
-    FROM db_qc.tbl_bon_permintaan_detail
-    WHERE nokk = a.nokk AND no_permintaan = a.no_permintaan
-  ) x
-) tm
+                      STRING_AGG(
+                          CONVERT(varchar(10), tgl_mutasi, 23),
+                          ', '
+                      ) AS tgl_mutasi,
 
-OUTER APPLY (
-  SELECT STRING_AGG(x.tempat, ', ') AS tempat
-  FROM (
-    SELECT DISTINCT tempat
-    FROM db_qc.tbl_bon_permintaan_detail
-    WHERE nokk = a.nokk AND no_permintaan = a.no_permintaan
-  ) x
-) tp
-
-WHERE a.refno = ?
-GROUP BY
-  a.id, a.refno, a.no_permintaan, a.nokk, a.langganan, a.no_po, a.no_order,
-  a.jenis_kain, a.warna, a.roll, a.berat, a.jns_permintaan, a.ket,
-  tm.tgl_mutasi, tp.tempat
-ORDER BY a.id ASC
-";
+                      STRING_AGG(
+                          tempat,
+                          ', '
+                      ) AS tempat
+                  FROM (
+                      SELECT DISTINCT
+                          nokk,
+                          no_permintaan,
+                          sn,
+                          berat,
+                          tgl_mutasi,
+                          tempat
+                      FROM db_qc.tbl_bon_permintaan_detail
+                  ) x
+                  GROUP BY
+                      nokk,
+                      no_permintaan
+              ) d
+                  ON a.nokk = d.nokk
+                AND a.no_permintaan = d.no_permintaan
+              WHERE a.refno = ?
+              ORDER BY a.id ASC;
+                ";  
 
       $stmtc = sqlsrv_query($con, $sqlc, [$bon]);
       if ($stmtc === false) {
@@ -179,7 +185,7 @@ ORDER BY a.id ASC
       $n = 1;
       while ($row = sqlsrv_fetch_array($stmtc, SQLSRV_FETCH_ASSOC)) {
 
-        // DB2 (tetap)
+        // DB2
         $sqld = "SELECT COUNT(BALANCE.ELEMENTSCODE) AS JML_ROLL,
                   SUM(BALANCE.BASEPRIMARYQUANTITYUNIT) AS TBERAT
            FROM BALANCE BALANCE
@@ -195,13 +201,13 @@ ORDER BY a.id ASC
         // DETAIL SUM/COUNT (SQL Server)
         // =====================
         $sqldt = "
-    SELECT
-      COUNT(sn) AS no_rol_sblm,
-      SUM(berat) AS berat_sblm,
-      SUM(berat_potong) AS berat_ptg_sblm
-    FROM db_qc.tbl_bon_permintaan_detail
-    WHERE nokk = ? AND no_permintaan = ?
-  ";
+                  SELECT
+                    COUNT(sn) AS no_rol_sblm,
+                    SUM(berat) AS berat_sblm,
+                    SUM(berat_potong) AS berat_ptg_sblm
+                  FROM db_qc.tbl_bon_permintaan_detail
+                  WHERE nokk = ? AND no_permintaan = ?
+                ";
         $stmtdt = sqlsrv_query($con, $sqldt, [$row['nokk'], $row['no_permintaan']]);
         if ($stmtdt === false) {
           die(print_r(sqlsrv_errors(), true));
@@ -209,10 +215,10 @@ ORDER BY a.id ASC
         $rdt = sqlsrv_fetch_array($stmtdt, SQLSRV_FETCH_ASSOC);
 
         $sqlb = "
-    SELECT COUNT(sn) AS jml_rol, SUM(berat) AS berat
-    FROM db_qc.tbl_bon_permintaan_detail
-    WHERE nokk = ? AND no_permintaan = ?
-  ";
+                  SELECT COUNT(sn) AS jml_rol, SUM(berat) AS berat
+                  FROM db_qc.tbl_bon_permintaan_detail
+                  WHERE nokk = ? AND no_permintaan = ?
+                ";
         $stmtb = sqlsrv_query($con, $sqlb, [$row['nokk'], $row['no_permintaan']]);
         if ($stmtb === false) {
           die(print_r(sqlsrv_errors(), true));
@@ -396,29 +402,28 @@ ORDER BY a.id ASC
       // =====================
       // TTD / HEADER (SQL Server)
       // =====================
-      // Di MySQL Anda filter: DATE_FORMAT(a.tgl_update,'%Y-%m-%d')='$_GET[tgl]' dan LIMIT 1
       $sqlttd = "
-SELECT TOP 1
-  a.personil_buat,
-  a.personil_periksa,
-  a.personil_approve,
-  a.personil_proses,
-  a.jabatan_buat,
-  a.jabatan_periksa,
-  a.jabatan_approve,
-  a.jabatan_proses,
+                SELECT TOP 1
+                  a.personil_buat,
+                  a.personil_periksa,
+                  a.personil_approve,
+                  a.personil_proses,
+                  a.jabatan_buat,
+                  a.jabatan_periksa,
+                  a.jabatan_approve,
+                  a.jabatan_proses,
 
-  CONVERT(varchar(10), a.tgl_buat, 23)   AS tgl_buat,
-  CONVERT(varchar(10), a.tgl_periksa, 23) AS tgl_periksa,
-  CONVERT(varchar(19), a.tgl_approve, 120) AS tgl_approve,
-  CONVERT(varchar(10), a.tgl_proses, 23) AS tgl_proses,
+                  CONVERT(varchar(10), a.tgl_buat, 23)   AS tgl_buat,
+                  CONVERT(varchar(10), a.tgl_periksa, 23) AS tgl_periksa,
+                  CONVERT(varchar(19), a.tgl_approve, 120) AS tgl_approve,
+                  CONVERT(varchar(10), a.tgl_proses, 23) AS tgl_proses,
 
-  DATEPART(HOUR, a.tgl_approve) AS jam
-FROM db_qc.tbl_bon_permintaan a
-WHERE a.refno = ?
-  AND CONVERT(date, a.tgl_update) = ?
-ORDER BY a.id ASC
-";
+                  DATEPART(HOUR, a.tgl_approve) AS jam
+                FROM db_qc.tbl_bon_permintaan a
+                WHERE a.refno = ?
+                  AND CONVERT(date, a.tgl_update) = ?
+                ORDER BY a.id ASC
+                ";
 
       $stmtttd = sqlsrv_query($con, $sqlttd, [$bon, $tgl]);
       if ($stmtttd === false) {
@@ -475,7 +480,6 @@ ORDER BY a.id ASC
       <td style="font-size: 10px;">
         <span style="border:0px #000000 solid;">
           <?php
-          // logic asli Anda dipertahankan
           if (($rowdttd['jam'] > 7 && $rowdttd['jam'] < 15) || $rowdttd['jabatan_approve'] == "Assistant Manager") {
             // kosong
           } else {

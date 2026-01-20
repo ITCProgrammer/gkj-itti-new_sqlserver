@@ -1,77 +1,107 @@
 <?php
 header("Content-type: application/octet-stream");
-header("Content-Disposition: attachment; filename=summary-bon-permintaan-".substr($_GET['awal'],0,10)."_".substr($_GET['akhir'],0,10).".xls");//ganti nama sesuai keperluan
+header("Content-Disposition: attachment; filename=summary-bon-permintaan-" . substr($_GET['awal'], 0, 10) . "_" . substr($_GET['akhir'], 0, 10) . ".xls");
 header("Pragma: no-cache");
 header("Expires: 0");
-//disini script laporan anda
+
+ini_set("error_reporting", 1);
+session_start();
+
+include "../../koneksi.php";
+
+$Awal   = $_GET['awal'] ?? '';
+$Akhir  = $_GET['akhir'] ?? '';
+$Status = $_GET['status'] ?? '';
 ?>
-<?php
-$con=mysql_connect("10.0.0.10","dit","4dm1n"); 
-//$con=mysql_connect("10.0.5.178","root","");
-//$con=mysql_connect("localhost","root","");
-$db=mysql_select_db("db_qc",$con)or die("Gagal Koneksi");
-//--
-$Awal=$_GET['awal'];
-$Akhir=$_GET['akhir'];
-$Status=$_GET['status'];
-?>
+
 <body>
-<strong>Summary Bon Permintaan</strong><br>
-<strong>Periode: <?php echo $Awal; ?> s/d <?php echo $Akhir; ?></strong><br>
-<table width="100%" border="1">
-    <tr>
-      <th bgcolor="#12C9F0">NO.</th>
-      <th bgcolor="#12C9F0">NO BON</th>
-      <th bgcolor="#12C9F0">NO KK</th>
-      <th bgcolor="#12C9F0">DEPT</th>
-      <th bgcolor="#12C9F0">STATUS</th>
-      <th bgcolor="#12C9F0">TGL UPDATE</th>
-      <th bgcolor="#12C9F0">KETERANGAN</th>
-    </tr>
-	<?php 
-    $no=1;
-    if($Status!=""){ $sts=" AND `status`='$Status' ";}else{$sts=" ";}
-    $query=mysql_query("SELECT
-	id,	
-	dept,
-	refno,
-	jns_permintaan,
-	count( refno ) AS jmlkk,
-	GROUP_CONCAT( DISTINCT nokk SEPARATOR ', ' ) AS nokk,
-	GROUP_CONCAT( DISTINCT `status` SEPARATOR ', ') AS `status`,
-	GROUP_CONCAT( DISTINCT `personil_buat` SEPARATOR ', ') AS `personil_buat`,
-	GROUP_CONCAT( DISTINCT `personil_periksa` SEPARATOR ', ') AS `personil_periksa`,
-	DATE_FORMAT(tgl_periksa,'%Y-%m-%d') as tgl_periksa,
-	GROUP_CONCAT( DISTINCT `personil_approve` SEPARATOR ', ') AS `personil_approve`,
-	DATE_FORMAT(tgl_approve,'%Y-%m-%d') as tgl_approve,
-	GROUP_CONCAT( DISTINCT `personil_terima` SEPARATOR ', ') AS `personil_terima`,
-	DATE_FORMAT(tgl_terima,'%Y-%m-%d') as tgl_terima,
-	GROUP_CONCAT( DISTINCT `personil_proses` SEPARATOR ', ') AS `personil_proses`,
-	DATE_FORMAT(tgl_proses,'%Y-%m-%d') as tgl_proses,
-	GROUP_CONCAT( DISTINCT `personil_selesai` SEPARATOR ', ') AS `personil_selesai`,
-	DATE_FORMAT(tgl_selesai,'%Y-%m-%d') as tgl_selesai,
-	GROUP_CONCAT( DISTINCT `personil_cancel` SEPARATOR ', ') AS `personil_cancel`,
-	DATE_FORMAT(tgl_cancel,'%Y-%m-%d') as tgl_cancel,
-	tgl_update,
-	DATE_FORMAT(tgl_buat,'%Y.%m.%d') as tgl_buat
-    FROM
-	tbl_bon_permintaan
-    WHERE
-	not ISNULL( refno ) and DATE_FORMAT(tgl_buat,'%Y-%m-%d') BETWEEN '$Awal' AND '$Akhir' $sts
-    GROUP BY refno");
-	while($r=mysql_fetch_array($query)){
-        $sql=mysql_query("SELECT GROUP_CONCAT( DISTINCT jns_permintaan SEPARATOR ', ' ) AS ket FROM tbl_bon_permintaan WHERE refno='$r[refno]'");
-        $row=mysql_fetch_array($sql);
-	?>
-    <tr>
-      <td><?php echo $no;?></td>
-      <td>'<?php echo $r['refno'];?></td>
-      <td><?php echo $r['nokk'];?></td>
-      <td><?php echo $r['dept'];?></td>
-      <td><?php echo $r['status'];?></td>
-      <td><?php echo $r['tgl_update'];?></td>
-      <td><?php echo $row['ket'];?></td>
-  </tr>
-    <?php $no++;} ?>
-</table>
+    <strong>Summary Bon Permintaan</strong><br>
+    <strong>Periode: <?php echo htmlspecialchars($Awal); ?> s/d <?php echo htmlspecialchars($Akhir); ?></strong><br>
+
+    <table width="100%" border="1">
+        <tr>
+            <th bgcolor="#12C9F0">NO.</th>
+            <th bgcolor="#12C9F0">NO BON</th>
+            <th bgcolor="#12C9F0">NO KK</th>
+            <th bgcolor="#12C9F0">DEPT</th>
+            <th bgcolor="#12C9F0">STATUS</th>
+            <th bgcolor="#12C9F0">TGL UPDATE</th>
+            <th bgcolor="#12C9F0">KETERANGAN</th>
+        </tr>
+
+        <?php
+        $no = 1;
+
+        $params = [];
+        $where  = "WHERE t.refno IS NOT NULL
+           AND CONVERT(date, t.tgl_buat) BETWEEN ? AND ?";
+        $params[] = $Awal;
+        $params[] = $Akhir;
+
+        if ($Status !== '') {
+            $where .= " AND t.[status] = ?";
+            $params[] = $Status;
+        }
+
+        $sql = "
+                SELECT
+                    t.refno,
+                    MAX(t.dept) AS dept,
+
+                    COALESCE((
+                        SELECT STRING_AGG(x.nokk, ', ')
+                        FROM (
+                            SELECT DISTINCT CAST(nokk AS varchar(max)) AS nokk
+                            FROM db_qc.tbl_bon_permintaan
+                            WHERE refno = t.refno
+                        ) x
+                    ), '') AS nokk,
+
+                    COALESCE((
+                        SELECT STRING_AGG(x.sts, ', ')
+                        FROM (
+                            SELECT DISTINCT CAST([status] AS varchar(max)) AS sts
+                            FROM db_qc.tbl_bon_permintaan
+                            WHERE refno = t.refno
+                        ) x
+                    ), '') AS [status],
+
+                    CONVERT(varchar(19), MAX(t.tgl_update), 120) AS tgl_update,
+
+                    COALESCE((
+                        SELECT STRING_AGG(x.ket, ', ')
+                        FROM (
+                            SELECT DISTINCT CAST(jns_permintaan AS varchar(max)) AS ket
+                            FROM db_qc.tbl_bon_permintaan
+                            WHERE refno = t.refno
+                        ) x
+                    ), '') AS ket
+
+                FROM db_qc.tbl_bon_permintaan t
+                $where
+                GROUP BY t.refno
+                ORDER BY MAX(t.id) DESC
+            ";
+
+        $stmt = sqlsrv_query($con, $sql, $params);
+        if ($stmt === false) {
+            die(print_r(sqlsrv_errors(), true));
+        }
+
+        while ($r = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        ?>
+            <tr>
+                <td><?php echo $no; ?></td>
+                <td>'<?php echo $r['refno']; ?></td>
+                <td><?php echo $r['nokk']; ?></td>
+                <td><?php echo $r['dept']; ?></td>
+                <td><?php echo $r['status']; ?></td>
+                <td><?php echo $r['tgl_update']; ?></td>
+                <td><?php echo $r['ket']; ?></td>
+            </tr>
+        <?php
+            $no++;
+        }
+        ?>
+    </table>
 </body>
