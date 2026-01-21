@@ -38,9 +38,13 @@ $os= $_SERVER['HTTP_USER_AGENT'];
   </thead>
   <tbody>
   <?php
-  $sql = mysqli_query($con,"SELECT * FROM tbl_user_gkj ORDER BY username ASC");
+  $sql = sqlsrv_query($con,"SELECT * FROM db_qc.tbl_user_gkj ORDER BY username ASC");
+  if ($sql === false) {
+    die(print_r(sqlsrv_errors(), true));
+  }
+  
   $no=1;
-  while($rowd = mysqli_fetch_array($sql)){
+  while($rowd = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC)){
 	?>
   <tr align="center">
     <td align="center"><?php echo $no;?></td>
