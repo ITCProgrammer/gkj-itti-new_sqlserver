@@ -5,6 +5,16 @@ include "koneksi.php";
 $ip_num = $_SERVER['REMOTE_ADDR'];
 $os= $_SERVER['HTTP_USER_AGENT'];
 $Bon	    = isset($_GET['refno']) ? $_GET['refno'] : '';
+
+function format_dt($dt, $fmt) {
+    if ($dt instanceof DateTime) {
+        return $dt->format($fmt);
+    }
+    if ($dt === null || $dt === '') {
+        return '';
+    }
+    return date($fmt, strtotime($dt));
+}
 ?>
 <!doctype html>
 <html>
@@ -13,14 +23,14 @@ $Bon	    = isset($_GET['refno']) ? $_GET['refno'] : '';
 <title>Profile</title>
 </head>
 <?php 
-$sqltl = mysqli_query($con,"SELECT *, 
-    DATE_FORMAT(tgl_buat,'%Y.%m.%d') as tgl_buat1,
-    GROUP_CONCAT( DISTINCT nokk SEPARATOR ', ' ) AS nokk_all,
-    GROUP_CONCAT(`ket` SEPARATOR ', ') AS `ket_all`,
-    GROUP_CONCAT(`warna` SEPARATOR ', ') AS `warna_all`,
-    GROUP_CONCAT(`no_lot` SEPARATOR ', ') AS `lot_all`
-    FROM `tbl_bon_permintaan` WHERE refno='$Bon' ");
-$r1 = mysqli_fetch_array($sqltl);
+$sqltl = "SELECT TOP 1 t.*,
+    (SELECT STRING_AGG(nokk, ', ') FROM (SELECT DISTINCT nokk FROM db_qc.tbl_bon_permintaan WHERE refno = ?) s1) AS nokk_all,
+    (SELECT STRING_AGG(ket, ', ') FROM db_qc.tbl_bon_permintaan WHERE refno = ?) AS ket_all,
+    (SELECT STRING_AGG(warna, ', ') FROM db_qc.tbl_bon_permintaan WHERE refno = ?) AS warna_all,
+    (SELECT STRING_AGG(no_lot, ', ') FROM db_qc.tbl_bon_permintaan WHERE refno = ?) AS lot_all
+    FROM db_qc.tbl_bon_permintaan t WHERE t.refno = ?";
+$sqltlStmt = sqlsrv_query($con, $sqltl, array($Bon, $Bon, $Bon, $Bon, $Bon));
+$r1 = sqlsrv_fetch_array($sqltlStmt, SQLSRV_FETCH_ASSOC);
 ?>
 <body>
 	<section class="content">
@@ -84,8 +94,9 @@ $r1 = mysqli_fetch_array($sqltl);
                                 
                                 <p class="text-muted">	
                                 <?php 
-                               $sqlket= mysqli_query($con,"SELECT DISTINCT(jns_permintaan) FROM tbl_bon_permintaan WHERE refno='$Bon'");
-                               while($rket=mysqli_fetch_array($sqlket)){
+                               $sqlket = "SELECT DISTINCT jns_permintaan FROM db_qc.tbl_bon_permintaan WHERE refno = ?";
+                               $sqlketStmt = sqlsrv_query($con, $sqlket, array($Bon));
+                               while($rket = sqlsrv_fetch_array($sqlketStmt, SQLSRV_FETCH_ASSOC)){
                                 ?>
                                 <?php if($rket['jns_permintaan']=="Bongkaran"){?>
                                     <?php echo $rket['jns_permintaan']."<br>"; ?>
@@ -117,19 +128,19 @@ $r1 = mysqli_fetch_array($sqltl);
                                 <div class="tab-pane active" id="activity">
                                     <div class="timeline timeline-inverse">
                                         <?php 
-                                        $sql = mysqli_query($con,"SELECT *, 
-                                            DATE_FORMAT(tgl_buat,'%Y.%m.%d') as tgl_buat1,
-                                            GROUP_CONCAT( DISTINCT nokk SEPARATOR ', ' ) AS nokk_all,
-                                            GROUP_CONCAT(`ket` SEPARATOR ', ') AS `ket_all`,
-                                            GROUP_CONCAT(`warna` SEPARATOR ', ') AS `warna_all`,
-                                            GROUP_CONCAT(`no_lot` SEPARATOR ', ') AS `lot_all`
-                                            FROM `tbl_bon_permintaan` WHERE refno='$Bon' ");		
-                                        $r2 = mysqli_fetch_array($sql);			  
+                                        $sql = "SELECT TOP 1 t.*,
+                                            (SELECT STRING_AGG(nokk, ', ') FROM (SELECT DISTINCT nokk FROM db_qc.tbl_bon_permintaan WHERE refno = ?) s1) AS nokk_all,
+                                            (SELECT STRING_AGG(ket, ', ') FROM db_qc.tbl_bon_permintaan WHERE refno = ?) AS ket_all,
+                                            (SELECT STRING_AGG(warna, ', ') FROM db_qc.tbl_bon_permintaan WHERE refno = ?) AS warna_all,
+                                            (SELECT STRING_AGG(no_lot, ', ') FROM db_qc.tbl_bon_permintaan WHERE refno = ?) AS lot_all
+                                            FROM db_qc.tbl_bon_permintaan t WHERE t.refno = ?";		
+                                        $sqlStmt = sqlsrv_query($con, $sql, array($Bon, $Bon, $Bon, $Bon, $Bon));
+                                        $r2 = sqlsrv_fetch_array($sqlStmt, SQLSRV_FETCH_ASSOC);			  
                                         ?> 	
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r2['tgl_buat']));?>
+                                                <?php echo format_dt($r2['tgl_buat'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -137,7 +148,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-edit bg-green"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r2['tgl_buat']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r2['tgl_buat'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Bon Dibuat Oleh <a href="#"><?php echo $r2['personil_buat']; ?></a> Dari Dept. <?php echo $r2['dept']; ?>
                                                 </h3>
                                             </div>	
@@ -148,7 +159,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r2['tgl_periksa']));?>
+                                                <?php echo format_dt($r2['tgl_periksa'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -156,7 +167,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-file bg-primary"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r2['tgl_periksa']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r2['tgl_periksa'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Bon Diperiksa Oleh <a href="#"><?php echo $r2['personil_periksa']; ?></a>
                                                 </h3>
                                             </div>	
@@ -168,7 +179,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r2['tgl_approve']));?>
+                                                <?php echo format_dt($r2['tgl_approve'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -176,7 +187,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-check bg-green"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r2['tgl_approve']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r2['tgl_approve'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Bon Diapprove Oleh <a href="#"><?php echo $r2['personil_approve']; ?></a>
                                                 </h3>
                                             </div>	
@@ -188,7 +199,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r2['tgl_tambah']));?>
+                                                <?php echo format_dt($r2['tgl_tambah'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -196,7 +207,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-check bg-green"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r2['tgl_tambah']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r2['tgl_tambah'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Penambahan Bon Oleh User <a href="#"><?php echo $r2['personil_tambah']; ?></a>&nbsp; No KK : <?php echo $r2['nokk']; ?>,&nbsp;<?php echo $r2['jns_permintaan']; ?>
                                                 </h3>
                                             </div>	
@@ -208,7 +219,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r2['tgl_terima']));?>
+                                                <?php echo format_dt($r2['tgl_terima'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -216,7 +227,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-file bg-purple"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r2['tgl_terima']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r2['tgl_terima'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Bon Diterima Oleh <a href="#"><?php echo $r2['personil_terima']; ?></a> Dari Dept. GKJ
                                                 </h3>
                                             </div>	
@@ -228,7 +239,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r2['tgl_proses']));?>
+                                                <?php echo format_dt($r2['tgl_proses'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -236,7 +247,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-spinner bg-info"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r2['tgl_proses']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r2['tgl_proses'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Bon Telah Diproses Oleh <a href="#"><?php echo $r2['personil_proses']; ?> </a>
                                                 </h3>
                                             </div>	
@@ -245,14 +256,15 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <!-- timeline item -->
                                         <?php }?>
                                         <?php 
-                                        $sqltbh = mysqli_query($con,"SELECT * FROM `tbl_bon_permintaan` WHERE refno='$Bon' AND status_tambah='1'");
-                                        while($r3 = mysqli_fetch_array($sqltbh)){					  
+                                        $sqltbh = "SELECT * FROM db_qc.tbl_bon_permintaan WHERE refno = ? AND status_tambah = '1'";
+                                        $sqltbhStmt = sqlsrv_query($con, $sqltbh, array($Bon));
+                                        while($r3 = sqlsrv_fetch_array($sqltbhStmt, SQLSRV_FETCH_ASSOC)){					  
                                         ?>
                                         <?php if($r3['tgl_approve']==NULL AND $r3['status_tambah']=='1'){?>
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r3['tgl_tambah']));?>
+                                                <?php echo format_dt($r3['tgl_tambah'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -260,7 +272,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-plus bg-green"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r3['tgl_tambah']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r3['tgl_tambah'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Penambahan Bon Oleh GKJ&nbsp;<a href="#"><?php echo $r3['personil_tambah']; ?></a>&nbsp; No KK : <?php echo $r3['nokk']; ?>, &nbsp;<?php echo $r3['jns_permintaan']; ?>
                                                 </h3>
                                             </div>	
@@ -273,7 +285,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r2['tgl_selesai']));?>
+                                                <?php echo format_dt($r2['tgl_selesai'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -281,7 +293,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-flag-checkered bg-yellow"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r2['tgl_selesai']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r2['tgl_selesai'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Bon Telah Diselesaikan Oleh <a href="#"><?php echo $r2['personil_selesai']; ?> </a>
                                                 </h3>
                                             </div>	
@@ -293,7 +305,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <!-- timeline time label -->
                                         <div class="time-label">
                                             <span class="<?php echo "bg-orange";?>">
-                                                <?php echo date('d M Y', strtotime($r2['tgl_cancel']));?>
+                                                <?php echo format_dt($r2['tgl_cancel'], 'd M Y'); ?>
                                             </span>
                                         </div>
                                         <!-- /.timeline-label -->
@@ -301,7 +313,7 @@ $r1 = mysqli_fetch_array($sqltl);
                                         <div>
                                             <i class="fa fa-times bg-red"></i>
                                             <div class="timeline-item">
-                                                <span class="time"><i class="far fa-clock"></i> <?php echo date('H:i:s', strtotime($r2['tgl_cancel']));?></span>
+                                                <span class="time"><i class="far fa-clock"></i> <?php echo format_dt($r2['tgl_cancel'], 'H:i:s'); ?></span>
                                                 <h3 class="timeline-header border-0">Bon Telah Dicancel Oleh <a href="#"><?php echo $r2['personil_cancel']; ?> </a>
                                                 </h3>
                                             </div>	
