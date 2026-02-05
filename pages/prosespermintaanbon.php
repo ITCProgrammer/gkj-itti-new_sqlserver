@@ -157,26 +157,26 @@ $Usernm	    = $_SESSION['userGKJ'];
                   else if($row['status']=="Cancel"){echo "<span class='badge badge-danger'>".$row['status']."</span><br>"; echo "<span class='badge badge-danger'>".$row['personil_cancel']."</span><br>"; echo "<span class='badge badge-primary'>".$row['tgl_cancel']."</span>";} ?>
                   </td>
                   <td align="center"><?php echo $row['tgl_update']; ?></td>
-                  <td align="center"><a href="#" class="btn btn-warning btn-xs edit_tglproses <?php if($row['tgl_proses']!="" AND $_SESSION['lvlGKJ']=="admin" OR $_SESSION['lvlGKJ']=="superadmin"){}else{echo "disabled";} ?>" refno="<?php echo $row['refno']; ?>"><?php if($row['tgl_proses']!=""){echo $row['tgl_proses'];}else{echo "Belum Diproses";} ?></a></td>
+                  <td align="center"><a href="#" class="btn btn-warning btn-xs edit_tglproses <?php if($row['tgl_proses']!="" AND $_SESSION['lvlGKJ']=="admin" OR $_SESSION['lvlGKJ']=="superadmin"){}else{echo "disabled";} ?>" refno="<?php echo trim($row['refno']); ?>"><?php if($row['tgl_proses']!=""){echo $row['tgl_proses'];}else{echo "Belum Diproses";} ?></a></td>
                   <td align="center">
                   <?php
-                    $sqlket = sqlsrv_query($con, "SELECT DISTINCT(jns_permintaan) AS jns_permintaan FROM db_qc.tbl_bon_permintaan WHERE refno = ?", array($row['refno']));
+                    $sqlket = sqlsrv_query($con, "SELECT DISTINCT(jns_permintaan) AS jns_permintaan FROM db_qc.tbl_bon_permintaan WHERE refno = ?", array(trim($row['refno'])));
                     while($rket=sqlsrv_fetch_array($sqlket, SQLSRV_FETCH_ASSOC)){
                   ?>	  
                   <?php if($rket['jns_permintaan']=="Bongkaran"){?>
-                  <a href="ProsesBongkaranBon-<?php echo $row['refno']; ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-warning btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
+                  <a href="ProsesBongkaranBon-<?php echo trim($row['refno']); ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-warning btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
                   <?php } ?>
                   <?php if($rket['jns_permintaan']=="Potong Sample"){?>
-                  <a href="ProsesBon-<?php echo $row['refno']; ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-success btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
+                  <a href="ProsesBon-<?php echo trim($row['refno']); ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-success btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
                   <?php } ?>
                   <?php if($rket['jns_permintaan']=="Potong Pass Qty"){?>
-                  <a href="ProsesBon-<?php echo $row['refno']; ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-primary btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
+                  <a href="ProsesBon-<?php echo trim($row['refno']); ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-primary btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
                   <?php } ?>
                   <?php if($rket['jns_permintaan']=="Potong Sisa"){?>
-                  <a href="ProsesPotongSisa-<?php echo $row['refno']; ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-info btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
+                  <a href="ProsesPotongSisa-<?php echo trim($row['refno']); ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-info btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
                   <?php } ?>
                   <?php if($rket['jns_permintaan']=="Ganti Grade"){?>
-                  <a href="ProsesGantiGrade-<?php echo $row['refno']; ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-secondary btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
+                  <a href="ProsesGantiGrade-<?php echo trim($row['refno']); ?>-<?php echo $rket['jns_permintaan']; ?>-<?php echo $row['id']; ?>" class="btn btn-secondary btn-xs <?php if($row['status']=="Baru" or $row['status']=="Approve" or $row['status']=="Selesai" or $row['status']=="Terima" or $row['status']=="Check" or $row['status']=="Cancel"){echo "disabled";} ?>" ><?php echo $rket['jns_permintaan']; ?></a>
                   <?php } ?>
                   <?php if($rket['jns_permintaan']=="Bon Sample"){?>
                     <span class='badge badge-danger'><?php echo $rket['jns_permintaan'];?></span>

@@ -25,15 +25,21 @@ function no_urut(){
     date_default_timezone_set("Asia/Jakarta");
     include"koneksi.php";
     $format = date("y");
-    $sql=mysqli_query($con,"SELECT no_permintaan FROM tbl_bon_permintaan WHERE substr(no_permintaan,1,2) like '".$format."%' ORDER BY no_permintaan DESC LIMIT 1") or die (mysqli_error());
-    $d=mysqli_num_rows($sql);
-    if($d>0){
-      $r=mysqli_fetch_array($sql);
-      $d=$r['no_permintaan'];
-      $str=substr($d,2,5);
-      $Urut = (int)$str;
+    $sql = sqlsrv_query(
+        $con,
+        "SELECT TOP 1 no_permintaan
+         FROM db_qc.tbl_bon_permintaan
+         WHERE LEFT(no_permintaan, 2) LIKE ?
+         ORDER BY no_permintaan DESC",
+        array($format . "%")
+    );
+    $r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC);
+    if($r){
+        $d=$r['no_permintaan'];
+        $str=substr($d,2,5);
+        $Urut = (int)$str;
     }else{
-      $Urut = 0;
+        $Urut = 0;
     }
     $Urut = $Urut + 1;
     $Nol="";
@@ -48,15 +54,22 @@ function no_doc(){
     date_default_timezone_set("Asia/Jakarta");
     include"koneksi.php";   
     $format = date("ymd")."4";
-    $sql=mysqli_query($con,"SELECT documentno FROM pergerakan_stok WHERE substr(documentno,1,7) like '%".$format."%' ORDER BY documentno DESC LIMIT 1");
-    $d=mysqli_num_rows($sql);
-    if($d>0){
-            $r=mysqli_fetch_array($sql);
-            $d=$r['documentno'];
-            $str=substr($d,7,3);
-            $Urut = (int)$str;
+    $sql = sqlsrv_query(
+        $con,
+        "SELECT TOP 1 documentno
+         FROM db_qc.pergerakan_stok
+         WHERE LEFT(documentno, 7) = ?
+         ORDER BY documentno DESC",
+        array($format)
+    );
+    $r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC);
+    if($r){
+        $d=$r['documentno'];
+        $str=substr($d,7,3);
+        $Urut = (int)$str;
     }else{
-        $Urut = 0;}
+        $Urut = 0;
+    }
     $Urut = $Urut + 1;
     $Nol="";
     $nilai=3-strlen($Urut);
@@ -68,19 +81,22 @@ function no_doc(){
 }
 function sn(){
     include"koneksi.php";
-    $qtgl=mysqli_query($con,"SELECT DATE_FORMAT(now(),'%y') as tgl");
-    $dttgll=mysqli_fetch_array($qtgl);
-    $format = $dttgll['tgl']."2";
-    $sql=mysqli_query($con,"SELECT SN FROM detail_pergerakan_stok 
-    WHERE substr(SN,1,3) like '%".$format."%' ORDER BY SN DESC LIMIT 1 ");
-    $d=mysqli_num_rows($sql);
-    if($d>0){
-    $r=mysqli_fetch_array($sql);
-    $d=$r['SN'];
-    $str=substr($d,3,10);
-    $Urut = (int)$str;
+    $format = date("y")."2";
+    $sql = sqlsrv_query(
+        $con,
+        "SELECT TOP 1 SN
+         FROM db_qc.detail_pergerakan_stok
+         WHERE LEFT(SN, 3) = ?
+         ORDER BY SN DESC",
+        array($format)
+    );
+    $r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC);
+    if($r){
+        $d=$r['SN'];
+        $str=substr($d,3,10);
+        $Urut = (int)$str;
     }else{
-    $Urut = 0;
+        $Urut = 0;
     }
     $Urut = $Urut + 3;
     $Nol="";
@@ -147,12 +163,15 @@ $snkain=sn();
                                         <select class="form-control select2" name="nokk" id="nokk" onchange="window.location='index1.php?page=prosesbongkaran_bon&amp;bon=<?php echo $_GET['bon'];?>&amp;jns=<?php echo $_GET['jns'];?>&amp;id=<?php echo $_GET['id'];?>&amp;nokk='+this.value">
                                             <option value=""></option>
                                             <?php 
-                                            $sqld = mysqli_query($con,"SELECT
-                                            nokk 
-                                            FROM tbl_bon_permintaan
-                                            WHERE refno='$Bon' AND jns_permintaan='$Jenis'
-                                            ORDER BY id ASC");
-                                            while($rkk = mysqli_fetch_array($sqld)){
+                                            $sqld = sqlsrv_query(
+                                                $con,
+                                                "SELECT nokk
+                                                 FROM db_qc.tbl_bon_permintaan
+                                                 WHERE refno = ? AND jns_permintaan = ?
+                                                 ORDER BY id ASC",
+                                                array($Bon, $Jenis)
+                                            );
+                                            while($rkk = sqlsrv_fetch_array($sqld, SQLSRV_FETCH_ASSOC)){
                                             ?>
                                             <option value="<?php echo $rkk['nokk'];?>" <?php if($_GET['nokk']==$rkk['nokk']){echo "SELECTED";}?>><?php echo $rkk['nokk'];?></option> 
                                             <?php } ?>
@@ -163,12 +182,15 @@ $snkain=sn();
                                 <label for="no_order" class="col-md-3">No Order</label>
                                     <div class="col-md-4">
                                         <?php 
-                                            $sqldo = mysqli_query($con,"SELECT
-                                            no_order 
-                                            FROM tbl_bon_permintaan
-                                            WHERE refno='$Bon' AND nokk='$Nokk'
-                                            ORDER BY id ASC");
-                                            $rorder = mysqli_fetch_array($sqldo);
+                                            $sqldo = sqlsrv_query(
+                                                $con,
+                                                "SELECT no_order
+                                                 FROM db_qc.tbl_bon_permintaan
+                                                 WHERE refno = ? AND nokk = ?
+                                                 ORDER BY id ASC",
+                                                array($Bon, $Nokk)
+                                            );
+                                            $rorder = sqlsrv_fetch_array($sqldo, SQLSRV_FETCH_ASSOC);
                                         ?>  
                                         <input name="no_order" type="text" class="form-control form-control-sm" id="no_order" placeholder="" value="<?php echo $rorder['no_order'];?>" readonly="readonly">
                                     </div>
@@ -322,9 +344,13 @@ $snkain=sn();
                         </thead>  
                         <tbody>
                         <?php
-                        $sqlc=mysqli_query($con,"SELECT * FROM tmp_detail_pergerakan_stok a WHERE a.transtatus='2' and a.userid='$Usernm' ORDER BY a.SN ASC");
+                        $sqlc = sqlsrv_query(
+                            $con,
+                            "SELECT * FROM db_qc.tmp_detail_pergerakan_stok a WHERE a.transtatus = ? AND a.userid = ? ORDER BY a.SN ASC",
+                            array('2', $Usernm)
+                        );
                         $n=1;
-                        while($row=mysqli_fetch_array($sqlc)){
+                        while($row = sqlsrv_fetch_array($sqlc, SQLSRV_FETCH_ASSOC)){
                             $sqld="SELECT A.*, B.CODE AS NO_ORDER,
                             B.PO_HEADER AS PO_HEADER,B.PO_LINE AS PO_LINE, TRIM(D.LONGDESCRIPTION) AS WARNA FROM BALANCE A 
                             LEFT JOIN 
@@ -340,7 +366,7 @@ $snkain=sn();
                             LEFT JOIN 
                             (SELECT USERGENERICGROUP.CODE,USERGENERICGROUP.LONGDESCRIPTION FROM USERGENERICGROUP USERGENERICGROUP) D
                             ON A.DECOSUBCODE05=D.CODE
-                            WHERE A.ELEMENTSCODE ='$row[barcode]'";
+                            WHERE A.ELEMENTSCODE ='".$row['barcode']."'";
                             $stmt=db2_exec($conn1,$sqld, array('cursor'=>DB2_SCROLLABLE));
                             $rowd = db2_fetch_assoc($stmt);
                         ?>	
@@ -355,7 +381,7 @@ $snkain=sn();
                             <td align="center" ><?php if($row['grade']='1'){echo 'A';}else if($row['grade']=='2'){echo 'B';}else if($row['grade']=='3'){echo 'C';} ?></td>
                             <td align="center" ><?php echo $row['barcode']; ?></td>
                             <td align="center" ><?php echo $row['sisa']; ?></td>
-                            <td align="center" ><?php echo $row['tgl_mutasi']; ?></td>
+                            <td align="center" ><?php echo ($row['tgl_mutasi'] instanceof DateTime) ? $row['tgl_mutasi']->format('Y-m-d') : $row['tgl_mutasi']; ?></td>
                             <td><input type="checkbox" name="cek0[<?php echo $n; ?>]" value="<?php echo $row['id']; ?>"/></td>
                         </tr>
                         <?php 
@@ -398,17 +424,13 @@ if(isset($_POST['tambah'])){
         $no_kk		= $result['LOTCODE'];
         $lokasi		= $result['WAREHOUSELOCATIONCODE'];
         $mutasi	    = $result1['TGL_MUTASI'];
-        $sqlInsert=mysqli_query($con,"INSERT INTO tmp_detail_pergerakan_stok SET
-        `weight`='$weight',
-        `yard_`='$yard',
-        `satuan`='$satuan',
-        `grade`='$grade',
-        `barcode`='$SN',
-        `nokk`='$no_kk',
-        `transtatus`='2',
-        `userid`='$Usernm',
-        `lokasi`='$lokasi',
-        `tgl_mutasi`='$mutasi'");
+        $sqlInsert = sqlsrv_query(
+            $con,
+            "INSERT INTO db_qc.tmp_detail_pergerakan_stok
+             (weight, yard_, satuan, grade, barcode, nokk, transtatus, userid, lokasi, tgl_mutasi)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            array($weight, $yard, $satuan, $grade, $SN, $no_kk, '2', $Usernm, $lokasi, $mutasi)
+        );
         }
     $no++;
     }
@@ -418,7 +440,11 @@ if(isset($_POST['tambah'])){
     }
 
 if(isset($_POST['batal'])){
-    $sqldelete = mysqli_query($con,"DELETE FROM tmp_detail_pergerakan_stok WHERE transtatus='2' AND userid='$Usernm'");
+    $sqldelete = sqlsrv_query(
+        $con,
+        "DELETE FROM db_qc.tmp_detail_pergerakan_stok WHERE transtatus = ? AND userid = ?",
+        array('2', $Usernm)
+    );
     if($sqldelete){
         echo "<script>window.location='index1.php?page=prosesbongkaran_bon&bon=$Bon&jns=$Jenis&id=$id1&nokk=$Nokk&tgl=$tgl&ket=$ket1&shift=$shift1';</script>"; 
     }
@@ -439,24 +465,31 @@ if(isset($_POST['save'])){
 	$nobon			= $_POST['nobonsave'];
 	$kkno			= $_POST['nokksave'];
 	$jenis			= $_POST['jenissave'];
-    $sqlInsert=mysqli_query($con,"INSERT INTO pergerakan_stok SET
-    `tgl_update`='$tgl_update',
-    `documentno`='$documentno',
-    `tgl_sj`='$tgl_sj',
-    `shift`='$shift',
-    `ket`='$ket,$txtKeterangan',
-    `typestatus`='3',
-    `typetrans`='2',
-    `fromtoid`='OUT',
-    `no_sj`='$txtDok',
-    `userid`='$Usernm'");
+    $sqlInsert = sqlsrv_query(
+        $con,
+        "INSERT INTO db_qc.pergerakan_stok
+         (tgl_update, documentno, tgl_sj, shift, ket, typestatus, typetrans, fromtoid, no_sj, userid)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        array($tgl_update, $documentno, $tgl_sj, $shift, $ket . "," . $txtKeterangan, '3', '2', 'OUT', $txtDok, $Usernm)
+    );
 
     $n=1;
-    $sqlData = mysqli_query($con,"SELECT * FROM tmp_detail_pergerakan_stok WHERE userid='$Usernm' AND transtatus='2'");
-    foreach ($sqlData as $tmpData){
-    $sqlpmt = mysqli_query($con,"SELECT no_permintaan FROM tbl_bon_permintaan WHERE refno='$nobon' AND nokk='$kkno' AND jns_permintaan='$jenis' LIMIT 1");
-    $rowp = mysqli_fetch_array($sqlpmt);
-    $idcek_save	= $_POST['cek0'][$n];
+    $sqlData = sqlsrv_query(
+        $con,
+        "SELECT * FROM db_qc.tmp_detail_pergerakan_stok WHERE userid = ? AND transtatus = ?",
+        array($Usernm, '2')
+    );
+    while($tmpData = sqlsrv_fetch_array($sqlData, SQLSRV_FETCH_ASSOC)){
+        $sqlpmt = sqlsrv_query(
+            $con,
+            "SELECT TOP 1 no_permintaan
+             FROM db_qc.tbl_bon_permintaan
+             WHERE refno = ? AND nokk = ? AND jns_permintaan = ?
+             ORDER BY id ASC",
+            array($nobon, $kkno, $jenis)
+        );
+        $rowp = sqlsrv_fetch_array($sqlpmt, SQLSRV_FETCH_ASSOC);
+        $idcek_save	= $_POST['cek0'][$n];
         if($idcek_save!=""){
             $dataBerat 			= $tmpData['weight'];
             $dataYard 			= $tmpData['yard_'];
@@ -468,19 +501,22 @@ if(isset($_POST['save'])){
             $tglmutasi			= $tmpData['tgl_mutasi'];
             $no_urut			= $rowp['no_permintaan'];
             
-            $sqlInsert1=mysqli_query($con,"INSERT INTO tbl_bon_permintaan_detail SET
-            `no_permintaan`='$no_urut',
-            `nokk`='$dataKK',
-            `berat`='$dataBerat',
-            `panjang`='$dataYard',
-            `tempat`='$dataLokasi',
-            `sn`='$dataSN',
-            `tgl_mutasi`='$tglmutasi'");
+            $sqlInsert1 = sqlsrv_query(
+                $con,
+                "INSERT INTO db_qc.tbl_bon_permintaan_detail
+                 (no_permintaan, nokk, berat, panjang, tempat, sn, tgl_mutasi)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)",
+                array($no_urut, $dataKK, $dataBerat, $dataYard, $dataLokasi, $dataSN, $tglmutasi)
+            );
         }
-    $n++;
+        $n++;
     }#AKHIR FOREACH
     # Kosongkan Tmp jika datanya sudah dipindah
-    $sqldelete = mysqli_query($con,"DELETE FROM tmp_detail_pergerakan_stok WHERE transtatus='2' AND userid='$Usernm'");
+    $sqldelete = sqlsrv_query(
+        $con,
+        "DELETE FROM db_qc.tmp_detail_pergerakan_stok WHERE transtatus = ? AND userid = ?",
+        array('2', $Usernm)
+    );
     if($sqlInsert1){
         echo "<script>window.location='index1.php?page=prosesbongkaran_bon&bon=$Bon&jns=$Jenis&id=$id1&nokk=$Nokk';</script>"; 
           }
