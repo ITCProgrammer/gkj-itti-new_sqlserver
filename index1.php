@@ -755,24 +755,32 @@ if ($page == "statusterima") {
   $jabatan = $_GET['jabatan'];
   $ip      = $_SERVER['REMOTE_ADDR']; 
 
-  $sql = "
-    UPDATE db_qc.tbl_bon_permintaan
-    SET
-      [status]         = 'Terima',
-      personil_terima  = ?,
-      jabatan_terima   = ?,
-      tgl_terima       = GETDATE()
-    WHERE refno = ?
-      AND CONVERT(char(10), tgl_buat, 102) = ?
-  ";
-  sqlsrv_query($con, $sql, [$user, $jabatan, $refno, $tgl]);
+  $sql = "UPDATE db_qc.tbl_bon_permintaan
+          SET
+            [status]        = 'Terima',
+            personil_terima = ?,
+            jabatan_terima  = ?,
+            tgl_terima      = GETDATE()
+          WHERE LTRIM(RTRIM(refno)) = LTRIM(RTRIM(?))
+            AND CONVERT(date, tgl_buat) = TRY_CONVERT(date, REPLACE(?, '.', '-'), 23)";
 
-  $sqlLog = "
-    INSERT INTO db_qc.tbl_log_bon_gkj
-      (proses, detail_proses, [user], waktu_proses, ip)
-    VALUES
-      (?, ?, ?, GETDATE(), ?)
-  ";
+  $stmtUpdate = sqlsrv_query($con, $sql, [$user, $jabatan, $refno, $tgl]);
+
+  if ($stmtUpdate === false) {
+    echo "<pre>UPDATE ERROR:\n"; print_r(sqlsrv_errors()); echo "</pre>";
+    exit;
+  }
+
+  $rows = sqlsrv_rows_affected($stmtUpdate);
+  if ($rows <= 0) {
+    echo "<pre>UPDATE tidak kena data (rows=$rows). refno=[$refno], tgl=[$tgl]</pre>";
+    exit;
+  }
+
+  $sqlLog = "INSERT INTO db_qc.tbl_log_bon_gkj
+            (proses, detail_proses, [user], waktu_proses, ip)
+            VALUES (?, ?, ?, GETDATE(), ?)";
+
   $okLog = sqlsrv_query($con, $sqlLog, [
     'Terima Bon Permintaan',
     "GKJ Melakukan Proses Terima Bon: $refno",
