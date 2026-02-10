@@ -882,17 +882,25 @@ if ($page == "statussproses") {
   $tgl     = $_GET['tgl'];
   $jabatan = $_GET['jabatan'];
 
-  $sql = "
-    UPDATE db_qc.tbl_bon_permintaan
+  $sql = " UPDATE db_qc.tbl_bon_permintaan
     SET
       [status]         = 'Sedang Proses',
       personil_proses  = ?,
       jabatan_proses   = ?,
       tgl_proses       = GETDATE()
-    WHERE refno = ?
-      AND CONVERT(char(10), tgl_buat, 102) = ?
+    WHERE LTRIM(RTRIM(refno)) = LTRIM(RTRIM(?))
+      AND CONVERT(date, tgl_buat) = TRY_CONVERT(date, REPLACE(?, '.', '-'), 23)
   ";
-  sqlsrv_query($con, $sql, [$user, $jabatan, $refno, $tgl]);
+  $stmt = sqlsrv_query($con, $sql, [$user, $jabatan, $refno, $tgl]);
+
+  if ($stmt === false) {
+    die(print_r(sqlsrv_errors(), true));
+  }
+
+  $rows = sqlsrv_rows_affected($stmt);
+  if ($rows === 0) {
+    die("UPDATE jalan tapi 0 row ter-update. Cek refno/tgl_buat. refno=$refno, tgl=$tgl");
+  }
 
   echo "<script>window.location='ProsesPermintaanBon';</script>";
 }
