@@ -388,9 +388,9 @@ if(isset($_POST['tambah'])){
         $lokasi		= $result['WAREHOUSELOCATIONCODE'];
         $tgl_mutasi		= $result1['TGL_MUTASI'];
         $sqlInsert=sqlsrv_query($con,"INSERT INTO db_qc.tmp_detail_pergerakan_stok
-            (weight, yard_, satuan, grade, SN, barcode, nokk, transtatus, userid, lokasi, tgl_mutasi)
+            (weight, yard_, satuan, grade, barcode, nokk, transtatus, userid, lokasi, tgl_mutasi)
             VALUES
-            ('$weight', '$yard', '$satuan', '$grade', CAST('$SN' AS BIGINT), '$SN', '$no_kk', '2', '$Usernm', '$lokasi', '$tgl_mutasi')");
+            ('$weight', '$yard', '$satuan', '$grade', '$SN', '$no_kk', '2', '$Usernm', '$lokasi', '$tgl_mutasi')");
         }
         
         if($sqlInsert === false){
