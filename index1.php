@@ -750,19 +750,19 @@ if ($page == "statusterima") {
   date_default_timezone_set("Asia/Jakarta");
 
   $user    = $_GET['user'];
-  $refno   = $_GET['refno'];
+  $refno   = trim($_GET['refno']);
   $tgl     = $_GET['tgl'];
   $jabatan = $_GET['jabatan'];
   $ip      = $_SERVER['REMOTE_ADDR']; 
 
   $sql = "UPDATE db_qc.tbl_bon_permintaan
-          SET
-            [status]        = 'Terima',
-            personil_terima = ?,
-            jabatan_terima  = ?,
-            tgl_terima      = GETDATE()
-          WHERE LTRIM(RTRIM(refno)) = LTRIM(RTRIM(?))
-            AND CONVERT(date, tgl_buat) = TRY_CONVERT(date, REPLACE(?, '.', '-'), 23)";
+        SET 
+          [status]='Terima',
+          personil_terima=?,
+          jabatan_terima=?,
+          tgl_terima=GETDATE()
+        WHERE refno = ?
+          AND CONVERT(date, tgl_buat) = TRY_CONVERT(date, REPLACE(?, '.', '-'), 23)";
 
   $stmtUpdate = sqlsrv_query($con, $sql, [$user, $jabatan, $refno, $tgl]);
 

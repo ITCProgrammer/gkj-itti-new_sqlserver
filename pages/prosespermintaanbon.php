@@ -65,74 +65,72 @@ $Usernm	    = $_SESSION['userGKJ'];
                 <tbody> 
                 <?php
                 $sqlText = "WITH base AS (
-                  SELECT *,
-                  LTRIM(RTRIM(refno)) AS refno_trim 
-                  FROM db_qc.tbl_bon_permintaan
+                  SELECT * FROM db_qc.tbl_bon_permintaan
                   WHERE refno IS NOT NULL AND [status] <> 'Selesai'
                 )
                 SELECT
                   MAX(id) AS id,
                   MAX(dept) AS dept,
-                  b.refno_trim AS refno,
+                  refno,
                   MAX(jns_permintaan) AS jns_permintaan,
-                  COUNT(b.refno_trim) AS jmlkk,
+                  COUNT(refno) AS jmlkk,
                   STUFF((
                     SELECT DISTINCT ', ' + b2.nokk
                     FROM base b2
-                    WHERE b2.refno_trim = b.refno_trim AND b2.nokk IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.nokk IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS nokk,
                   STUFF((
                     SELECT DISTINCT ', ' + b2.[status]
                     FROM base b2
-                     WHERE b2.refno_trim = b.refno_trim AND b2.[status] IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.[status] IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS [status],
                   STUFF((
                     SELECT DISTINCT ', ' + b2.personil_buat
                     FROM base b2
-                    WHERE b2.refno_trim = b.refno_trim AND b2.personil_buat IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.personil_buat IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS personil_buat,
                   STUFF((
                     SELECT DISTINCT ', ' + b2.personil_periksa
                     FROM base b2
-                    WHERE b2.refno_trim = b.refno_trim AND b2.personil_periksa IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.personil_periksa IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS personil_periksa,
                   CONVERT(varchar(10), MAX(tgl_periksa), 23) AS tgl_periksa,
                   STUFF((
                     SELECT DISTINCT ', ' + b2.personil_approve
                     FROM base b2
-                    WHERE b2.refno_trim = b.refno_trim AND b2.personil_approve IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.personil_approve IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS personil_approve,
                   CONVERT(varchar(10), MAX(tgl_approve), 23) AS tgl_approve,
                   STUFF((
                     SELECT DISTINCT ', ' + b2.personil_terima
                     FROM base b2
-                    WHERE b2.refno_trim = b.refno_trim AND b2.personil_terima IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.personil_terima IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS personil_terima,
                   CONVERT(varchar(10), MAX(tgl_terima), 23) AS tgl_terima,
                   STUFF((
                     SELECT DISTINCT ', ' + b2.personil_proses
                     FROM base b2
-                    WHERE b2.refno_trim = b.refno_trim AND b2.personil_proses IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.personil_proses IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS personil_proses,
                   CONVERT(varchar(10), MAX(tgl_proses), 23) AS tgl_proses,
                   STUFF((
                     SELECT DISTINCT ', ' + b2.personil_selesai
                     FROM base b2
-                    WHERE b2.refno_trim = b.refno_trim AND b2.personil_selesai IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.personil_selesai IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS personil_selesai,
                   CONVERT(varchar(10), MAX(tgl_selesai), 23) AS tgl_selesai,
                   STUFF((
                     SELECT DISTINCT ', ' + b2.personil_cancel
                     FROM base b2
-                    WHERE b2.refno_trim = b.refno_trim AND b2.personil_cancel IS NOT NULL
+                    WHERE b2.refno = b.refno AND b2.personil_cancel IS NOT NULL
                     FOR XML PATH(''), TYPE
                   ).value('.', 'varchar(max)'), 1, 2, '') AS personil_cancel,
                   CONVERT(varchar(10), MAX(tgl_cancel), 23) AS tgl_cancel,
@@ -140,7 +138,7 @@ $Usernm	    = $_SESSION['userGKJ'];
                   CONVERT(varchar(10), MIN(tgl_buat), 23) AS tgl_buat,
                   MAX(potong_null) AS potong_null
                 FROM base b
-                GROUP BY b.refno_trim
+                GROUP BY refno
                 ORDER BY MAX(id) DESC";
                 $sql = sqlsrv_query($con, $sqlText);
                 $n=1;
@@ -204,8 +202,8 @@ $Usernm	    = $_SESSION['userGKJ'];
                   <?php }else{?>
                   <a href="pages/cetak/bon-permintaan.php?bon=<?php echo $row['refno']; ?>&tgl=<?php echo substr($row['tgl_update'],0,10); ?>" class="btn btn-primary btn-xs  <?php if($row['status']=="Approve" or $row['status']=="Check" or $row['status']=="Baru" or $row['status']=="Cancel" or $row['status']=="Terima"){ echo "disabled"; } ?>" target="_blank"><i class="fa fa-print" data-toggle="tooltip" data-placement="top" title="Cetak"></i> </a>
                   <?php }?>
-                  <a href="#" class="btn btn-success btn-xs <?php if($row['status']=="Sedang Proses" or $row['status']=="Terima" or $row['status']=="Baru" or $row['status']=="Selesai" or $row['status']=="Check" or $row['status']=="Cancel"){ echo "disabled"; } ?>" onclick="confirm_terima('TerimaBon-<?php echo $row['refno']; ?>-<?php echo $row['tgl_buat']; ?>-<?php echo $_SESSION['userGKJ']; ?>-<?php echo $_SESSION['jabatanGKJ']; ?>');"><i class="fa fa-check-circle" data-toggle="tooltip" data-placement="top" title="Terima"></i> </a>
-                  <a href="#" class="btn btn-primary btn-xs <?php if($row['status']=="Baru" or $row['status']=="Selesai" or $row['status']=="Approve" or $row['status']=="Sedang Proses" or $row['status']=="Check" or $row['status']=="Cancel"){ echo "disabled"; } ?>" onclick="confirm_proses('SProsesBon-<?php echo $row['refno']; ?>-<?php echo $row['tgl_buat']; ?>-<?php echo $_SESSION['userGKJ']; ?>-<?php echo $_SESSION['jabatanGKJ']; ?>');"><i class="fa fa-spinner" data-toggle="tooltip" data-placement="top" title="Proses"></i> </a>
+                  <a href="#" class="btn btn-success btn-xs <?php if($row['status']=="Sedang Proses" or $row['status']=="Terima" or $row['status']=="Baru" or $row['status']=="Selesai" or $row['status']=="Check" or $row['status']=="Cancel"){ echo "disabled"; } ?>" onclick="confirm_terima('TerimaBon-<?php echo rawurlencode(trim($row['refno'])); ?>-<?php echo rawurlencode(trim($row['tgl_buat'])); ?>-<?php echo rawurlencode(trim($_SESSION['userGKJ'])); ?>-<?php echo rawurlencode(trim($_SESSION['jabatanGKJ'])); ?>');"><i class="fa fa-check-circle" data-toggle="tooltip" data-placement="top" title="Terima"></i> </a>
+                  <a href="#" class="btn btn-primary btn-xs <?php if($row['status']=="Baru" or $row['status']=="Selesai" or $row['status']=="Approve" or $row['status']=="Sedang Proses" or $row['status']=="Check" or $row['status']=="Cancel"){ echo "disabled"; } ?>" onclick="confirm_proses('SProsesBon-<?php echo rawurlencode(trim($row['refno'])); ?>-<?php echo rawurlencode(trim($row['tgl_buat'])); ?>-<?php echo rawurlencode(trim($_SESSION['userGKJ'])); ?>-<?php echo rawurlencode(trim($_SESSION['jabatanGKJ'])); ?>');"><i class="fa fa-spinner" data-toggle="tooltip" data-placement="top" title="Proses"></i> </a>
                   <a href="#" class="btn btn-warning btn-xs <?php if($row['status']=="Baru" or $row['status']=="Terima" or $row['status']=="Selesai" or $row['status']=="Approve" or $row['status']=="Check" or $row['status']=="Cancel"){ echo "disabled"; } ?>" onclick="confirm_selesai('SelesaiBon-<?php echo $row['refno']; ?>-<?php echo $row['tgl_buat']; ?>-<?php echo $_SESSION['userGKJ']; ?>-<?php echo $_SESSION['jabatanGKJ']; ?>');"><i class="fa fa-flag-checkered" data-toggle="tooltip" data-placement="top" title="Selesai"></i> </a></div></td>
                 </tr>
                 <?php $n++;} ?>
