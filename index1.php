@@ -934,25 +934,34 @@ if ($page == "statusselesai") {
   date_default_timezone_set("Asia/Jakarta");
 
   $user    = $_GET['user'];
-  $refno   = $_GET['refno'];
+  $refno   = trim($_GET['refno']);
   $tgl     = $_GET['tgl'];
   $jabatan = $_GET['jabatan'];
   $ip      = $_SERVER['REMOTE_ADDR'];
 
-  $sql = "
-    UPDATE db_qc.tbl_bon_permintaan
+  $sql = " UPDATE db_qc.tbl_bon_permintaan
     SET
       [status]          = 'Selesai',
       personil_selesai  = ?,
       jabatan_selesai   = ?,
       tgl_selesai       = GETDATE()
-    WHERE refno = ?
-      AND CONVERT(char(10), tgl_buat, 102) = ?
+      WHERE LTRIM(RTRIM(refno)) = LTRIM(RTRIM(?))
+      AND CONVERT(date, tgl_buat) = TRY_CONVERT(date, REPLACE(?, '.', '-'), 23)
   ";
-  sqlsrv_query($con, $sql, [$user, $jabatan, $refno, $tgl]);
+  $stmtUpdate = sqlsrv_query($con, $sql, [$user, $jabatan, $refno, $tgl]);
 
-  $sqlLog = "
-    INSERT INTO db_qc.tbl_log_bon_gkj
+  if ($stmtUpdate === false) {
+    echo "<pre>UPDATE ERROR:\n"; print_r(sqlsrv_errors()); echo "</pre>";
+    exit;
+  }
+
+  $rows = sqlsrv_rows_affected($stmtUpdate);
+  if ($rows <= 0) {
+    echo "<pre>UPDATE tidak kena data (rows=$rows). refno=[$refno], tgl=[$tgl]</pre>";
+    exit;
+  }
+
+  $sqlLog = " INSERT INTO db_qc.tbl_log_bon_gkj
       (proses, detail_proses, [user], waktu_proses, ip)
     VALUES
       (?, ?, ?, GETDATE(), ?)
