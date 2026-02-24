@@ -329,13 +329,13 @@ $tgl = isset($_GET['tgl']) ? $_GET['tgl'] : '';
               <?php echo $row['jns_permintaan']; ?><br>
               <?php
               if ($row['jns_permintaan'] == "Potong Sample" || $row['jns_permintaan'] == "Potong Pass Qty" || $row['jns_permintaan'] == "Bon Sample") {
-                echo $row['ket'] . ", brt ptg: " . $rdt['berat_ptg_sblm'];
+                echo $row['ket'] . ", brt ptg: " . number_format($rdt['berat_ptg_sblm'], 2, '.', '');
               } else if ($row['jns_permintaan'] == "Potong Sisa") {
                 echo "Pot. U/ Sisa";
               } else if ($row['jns_permintaan'] == "Ganti Grade") {
                 echo "Ganti Grade";
               } else {
-                echo $row['ket'] . ", jml roll: " . $rowb['jml_rol'] . ", jml brt: " . $rowb['berat'];
+                echo $row['ket'] . ", jml roll: " . $rowb['jml_rol'] . ", jml brt: " . number_format($rowb['berat'], 2, '.', '');
               }
               ?>
             </font>
